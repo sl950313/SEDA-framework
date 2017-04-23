@@ -6,4 +6,13 @@ enum connect_status {
    FINISH
 };
 
+struct connection {
+   int fd;
+   connect_status status;
+   connection() {
+      fd = -1;
+      status = CONNECT;
+   }
+};
+
 #endif ///

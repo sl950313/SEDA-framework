@@ -13,6 +13,7 @@ class worker_pool {
 public:
    worker_pool() : worker_num(DEFAULT_WORKER_NUM) {}
    worker_pool(int _worker_num) : worker_num(_worker_num) {}
+   worker_pool(int _worker_num , worker_task _worker_init_callback) : worker_num(_worker_num), worker_init_callback(_worker_init_callback) {}
    virtual ~worker_pool() {}
 
    virtual void start() {}

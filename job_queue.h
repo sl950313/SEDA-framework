@@ -16,6 +16,7 @@ typedef void * (*worker_task)(void *);
 class task_queue {
 public:
    task_queue();
+   virtual ~task_queue();
    virtual void push(queue_element *qe) {}
    virtual queue_element *pop() {return NULL;}
    bool is_full();

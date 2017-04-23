@@ -19,7 +19,12 @@ void *worker_pool::per_worker_task(void *arg) {
       printf("%ld waiting element from queue\n", pthread_self());
       queue_element* qe = wp->jq->pop();
       printf("%ld getting element : %d\n", pthread_self(), qe->fd);
-      wp->exe_work((void *)qe);
+      if (wp->worker_init_callback) {
+         printf("here?\n");
+         wp->worker_init_callback(NULL);
+      } else {
+         wp->exe_work((void *)qe);
+      }
       if (qe->_status == FINISH) {
          delete qe;
       }
