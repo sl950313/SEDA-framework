@@ -17,15 +17,18 @@ void *worker_pool::per_worker_task(void *arg) {
    */
    while (wp->running) {
       printf("%ld waiting element from queue\n", pthread_self());
-      queue_element* qe = wp->jq->pop();
+      connection* qe = (connection *)wp->jq->pop();
       printf("%ld getting element : %d\n", pthread_self(), qe->fd);
       if (wp->worker_init_callback) {
          printf("here?\n");
          wp->worker_init_callback(NULL);
       } else {
          wp->exe_work((void *)qe);
+         qe->cb(qe);
       }
-      if (qe->_status == FINISH) {
+      if (qe != NULL) printf("qe != NULL\n");
+      if (qe != NULL && qe->status == FINISH) {
+         printf("connection process finish\n");
          delete qe;
       }
       //TODO

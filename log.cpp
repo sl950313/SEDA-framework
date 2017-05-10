@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 _log::_log(std::string _log_output, int _log_level) {
    log_level = _log_level;

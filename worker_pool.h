@@ -2,6 +2,9 @@
 #define _WORKER_POOL_H
 
 #include "job_queue.h"
+#include "struct.h"
+#include "connect.h"
+
 #include <pthread.h>
 #include <vector>
 #include <stdio.h>
@@ -11,13 +14,12 @@ typedef void * (*worker_task)(void *);
 
 class worker_pool {
 public:
-   worker_pool() : worker_num(DEFAULT_WORKER_NUM) {}
-   worker_pool(int _worker_num) : worker_num(_worker_num) {}
-   worker_pool(int _worker_num , worker_task _worker_init_callback) : worker_num(_worker_num), worker_init_callback(_worker_init_callback) {}
+   worker_pool() : worker_num(DEFAULT_WORKER_NUM) {worker_init_callback = NULL;}
+   worker_pool(int _worker_num) : worker_num(_worker_num) {worker_init_callback = NULL;}
+   worker_pool(int _worker_num , worker_task _worker_init_callback) : worker_num(_worker_num), worker_init_callback(_worker_init_callback) {worker_init_callback = NULL;}
    virtual ~worker_pool() {}
 
    virtual void start() {}
-   virtual void stop() {}
    void run(worker_task task);
    int worker_num;
    static void *per_worker_task(void *wp);
@@ -26,6 +28,7 @@ public:
    worker_task worker_init_callback;
 
 private:
+   virtual void stop() {}
    virtual void exe_work(void *arg) {}
    task_queue *jq;
 
@@ -40,10 +43,11 @@ public:
    
    void start();
    void exe_work(void *arg) {
-      queue_element *qe = (queue_element *)arg;
-      qe->_status = FINISH;
-      printf("hello\n");
+      connection *qe = (connection *)arg;
+      //qe->status = FINISH;
+      printf("%d : hello\n", qe->fd);
    }
+
 private:
    void stop();
    std::vector<pthread_t> threads;

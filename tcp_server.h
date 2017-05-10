@@ -20,7 +20,7 @@ public:
    connector *con;
    fd_process fd_process_callback;
    
-   _log log;
+   _log *log;
 
 private:
    virtual void start();
@@ -35,6 +35,8 @@ private:
 };
 
 class multi_process_tcp_server : public tcp_server {
+public:
+   //multi_process_tcp_server() {}
 };
 
 #endif // 

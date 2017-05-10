@@ -8,9 +8,9 @@ void *write_queue(void *arg) {
    task_queue *tq = (task_queue *)arg;
    int i = 0;
    while (true) {
-      queue_element *qe = new queue_element();
+      connection *qe = new connection();
       qe->fd = ++i;
-      tq->push(qe);
+      tq->push((void *)qe);
       usleep(100);
    }
    return NULL;
