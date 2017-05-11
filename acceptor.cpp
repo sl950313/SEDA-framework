@@ -87,10 +87,13 @@ void *acceptor::read_conn(void *arg) {
    printf("in read_conn.\n");
    connection *conn = (connection *)arg;
    int nread = -1;
-   char _buf[BUFSIZE];
+   char _buf[BUFSIZE] = {0};
    while ((nread = read(conn->fd, _buf, BUFSIZE - 1)) > 0) {
+      //_buf[nread - 1] = '\0';
       conn->req->buf->push_back(_buf, nread);
       conn->req->read_http_status_machine(_buf, nread);
+      printf("_buf : \n%s.\n", _buf);
+      conn->req->print_request_info();
    }
    printf("nread : %d\n", nread);
    if (nread == 0) {

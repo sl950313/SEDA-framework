@@ -26,11 +26,13 @@ void *worker_pool::per_worker_task(void *arg) {
          wp->exe_work((void *)qe);
          qe->cb(qe);
       }
-      if (qe != NULL) printf("qe != NULL\n");
+      //if (qe != NULL) printf("qe != NULL\n");
+      /*
       if (qe != NULL && qe->status == FINISH) {
          printf("connection process finish\n");
          delete qe;
       }
+      */
       //TODO
       //wp->worker_init_callback(qe);
    }

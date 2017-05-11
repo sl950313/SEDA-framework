@@ -38,15 +38,51 @@ read_http_status http_request::read_http_status_machine(const char *_buf, int nr
             } else if (memcmp(buf + begin, "HTTP", strlen("HTTP")) == 0 && ((i - begin == 5))) {
                proto = HTTPS;
             }
+            begin = i + 1;
             rhs = VERSION;
          }
+         break;
       case VERSION:
+         if (buf[i] == '\n') {
+            //
+            begin = i + 1;
+            rhs = REQUEST_HEAD;
+         }
+         break;
       case REQUEST_HEAD:
+         if (buf[i] == '\n') {
+            begin = i + 1;
+            if (buf[begin] == '\n') {
+               rhs = CONTENT;
+            }
+         }
+         break; 
       case CONTENT:
+         if (buf[i] == '\n') {
+            rhs = READ_HTTP_FINISH;
+         } else { 
+            char *p = buf + i;
+            char *_p = strsep(&p, "&");
+            while (_p) {
+               char *param = strstr(_p, "=");
+               if (!param) {
+                  // error happen.
+                  printf("error http request or request is not accpeted\n");
+               }
+               *param = '\0';
+            }
+            // TODO:
+         }
+         break;
       case READ_HTTP_FINISH:
+         break;
       case READ_HTTP_ERROR:
          break;
       }
    }
    return rhs;
+}
+
+void http_request::print_request_info() {
+   printf("Methord : %s, proto: %s, url : %s\n", (method == GET) ? "GET" : "POST", (proto == HTTP) ? "HTTP" : "HTTPS", url);
 }

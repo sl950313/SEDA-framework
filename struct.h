@@ -40,4 +40,7 @@ enum http_proto {
 struct http_response {
 };
 
+struct user_info {
+};
+
 #endif ///
