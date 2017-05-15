@@ -36,6 +36,8 @@ private:
    int epfd;
 
    _log *log;
+
+   int count;
 };
 
 #endif //

@@ -37,9 +37,6 @@ enum http_proto {
    HTTPS
 };
 
-struct http_response {
-};
-
 struct user_info {
 };
 

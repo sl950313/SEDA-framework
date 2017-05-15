@@ -23,6 +23,7 @@ acceptor::acceptor(_log *log) {
    port = DEFAULT_TCP_PORT;
    init_acceptor();
    this->log->info("acceptor : [acceptor(_log *)]\n");
+   //count = 0;
 }
 
 acceptor::acceptor(int _port, _log *log) {
@@ -60,20 +61,24 @@ bool acceptor::init_acceptor() {
 void *acceptor::accept_conn(void) {
    //acceptor *ac = (acceptor *)conn->arg;
    log->debug("acceptor : [accept_conn]\n");
+   printf("accept_conn\n");
    struct sockaddr_in actual_addr;
    int len = sizeof(struct sockaddr);
    int peer_sock = -1;
    while ((peer_sock = accept(listenfd, (sockaddr *)&actual_addr, (socklen_t *)&len)) > 0) {
       connection *conn = new connection();
       conn->fd = peer_sock;
+      conn->epfd = epfd;
       fcntl(peer_sock, F_SETFL, SOCK_NONBLOCK);
       struct epoll_event event;
-      event.events = EPOLLIN | EPOLLET;
+      memset(&event, 0, sizeof(event));
+      event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
       event.data.ptr = (void *)conn;
       epoll_ctl(epfd, EPOLL_CTL_ADD, peer_sock, &event); 
+      printf("accept fd : %d\n", conn->fd);
       
       // insert into map.
-      fd_conn.insert(std::pair<int, connection *>(peer_sock, conn));
+      //fd_conn.insert(std::pair<int, connection *>(peer_sock, conn));
    }
 
    if (peer_sock == -1) {
@@ -84,7 +89,7 @@ void *acceptor::accept_conn(void) {
 }
 
 void *acceptor::read_conn(void *arg) {
-   printf("in read_conn.\n");
+   //printf("in read_conn.\n");
    connection *conn = (connection *)arg;
    int nread = -1;
    char _buf[BUFSIZE] = {0};
@@ -94,10 +99,28 @@ void *acceptor::read_conn(void *arg) {
       conn->req->read_http_status_machine(_buf, nread);
       printf("_buf : \n%s.\n", _buf);
       conn->req->print_request_info();
+
+      if (conn->req->rhs == READ_HTTP_FINISH) {
+         printf("fd : %d. request has already been processed\n", conn->fd);
+         struct epoll_event event;
+         memset(&event, 0, sizeof(event));
+         event.events = EPOLLOUT | EPOLLET | EPOLLONESHOT;
+         event.data.ptr = (void *)conn;
+         int ret = epoll_ctl(conn->epfd, EPOLL_CTL_MOD, conn->fd, &event);
+         if (ret == -1) fprintf(stderr, "epoll_ctl : %d EROLL_CTL_MOD EPOLL_OUT.", conn->fd);
+      }
    }
-   printf("nread : %d\n", nread);
+   printf("---------------rhs : %d\n", conn->req->rhs);
    if (nread == 0) {
-      printf("client closed\n");
+      printf("%d read 0. client closed\n", conn->fd);
+      struct epoll_event event;
+      memset(&event, 0, sizeof(event));
+      int ret = epoll_ctl(conn->epfd, EPOLL_CTL_DEL, conn->fd, &event);
+      if (ret == -1) {
+         //perror("epoll_ctl : read_conn");
+         printf("epoll_ctl : EPOLL_CTL_DEL : %s\n", strerror(errno));
+      }
+
       close(conn->fd);
       delete conn;
       conn = NULL;
@@ -112,7 +135,44 @@ void *acceptor::read_conn(void *arg) {
    return NULL;
 }
 
-void *acceptor::write_conn(void *arg) {
+void *acceptor::write_conn(void *arg) { 
+   connection *conn = (connection *)arg;
+   //conn->rsp;
+   std::string rsp_content = "I have already receive your request. please wait...";
+   std::string rsp_head = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(rsp_content.length()) + "\r\n\r\n";
+   std::string rsp = rsp_head + rsp_content;
+   //std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(rsp_content.length()) + "\r\nI have already receive your request. please wait...";
+   int nwrite = 0;
+   int len = rsp.length();
+   while (len > 0) { 
+      nwrite = write(conn->fd, rsp.c_str() + rsp.length() - len, len);
+      if (nwrite < len) {
+         if (nwrite == -1 && errno != EAGAIN) perror("write error");
+         if (nwrite == -1 && errno == EAGAIN) break;
+      }
+      len -= nwrite;
+      printf("nwrite : %d, len : %d\n", nwrite, len);
+   }
+   printf("%lu write to %d\n", (unsigned long)pthread_self(), conn->fd);
+   //write(conn->fd, rsp_content.c_str(), rsp_content.length());
+   //while ((nwrite = write(conn->fd, response.c_str(), response.length())) > 0) {
+   //}
+
+   // TODO
+
+   struct epoll_event event;
+   memset(&event, 0, sizeof(event));
+   event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+   event.data.ptr = (void *)conn;
+   int ret = epoll_ctl(conn->epfd, EPOLL_CTL_MOD, conn->fd, &event); 
+   if (ret == -1) {
+      //perror("epoll_ctl : read_conn");
+      printf("epoll_ctl : %d read_conn EPOLL_CTL_MOD. %s\n", conn->fd, strerror(errno));
+   }
+   /*
+    * 填写response并返回后, 不应该关闭该套接字, 然后再read_conn中删除epfd中的conn->fd.
+    */
+   //close(conn->fd);
    return NULL;
 }
 
@@ -132,6 +192,7 @@ bool acceptor::epoll_loop() {
       int rd_fds = epoll_wait(epfd, events, MAXEVENTS, 1000);
       for (int i = 0; i < rd_fds; ++i) {
          if (events[i].data.fd == listenfd) {
+            //acceptor *ac = this;
             accept_conn();
          } else {
             // TODO.

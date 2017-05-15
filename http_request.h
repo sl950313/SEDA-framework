@@ -25,6 +25,10 @@ private:
    char url[64];
 
    std::map<std::string, std::string> content;
+
+   void get_params(char *content, int len);
+   void get_params_from_url();
+   void print_param();
 };
 
 #endif //

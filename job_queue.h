@@ -7,6 +7,11 @@
 #include "struct.h"
 
 typedef void * (*worker_task)(void *);
+struct queue_element {
+   worker_task _cb;
+   void *arg;
+};
+
 class task_queue {
 public:
    task_queue();
