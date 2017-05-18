@@ -37,7 +37,9 @@ enum http_proto {
    HTTPS
 };
 
+/*
 struct user_info {
 };
+*/
 
 #endif ///

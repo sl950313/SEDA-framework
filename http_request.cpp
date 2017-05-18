@@ -124,3 +124,7 @@ void http_request::get_params_from_url() {
 void http_request::print_request_info() {
    //printf("Methord : %s, proto: %s, url : %s\n", (method == GET) ? "GET" : "POST", (proto == HTTP) ? "HTTP" : "HTTPS", url);
 }
+
+std::map<std::string, std::string> &http_request::get_map_contents() {
+   return content;
+}

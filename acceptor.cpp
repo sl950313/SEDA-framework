@@ -110,6 +110,7 @@ void *acceptor::read_conn(void *arg) {
       if (conn->req->rhs == READ_HTTP_FINISH) {
          //printf("%lu, fd : %d. request has already been processed\n", pthread_self(), conn->fd);
          event.events = EPOLLOUT | EPOLLET | EPOLLONESHOT; 
+         conn->set_user_info_to_handle();
       } else { 
          event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
       }
@@ -223,13 +224,19 @@ bool acceptor::epoll_loop() {
             if (events[i].events & EPOLLIN) {
                connection *conn = (connection *)events[i].data.ptr;
                conn->cb = read_conn;
-               tq->push((void *)conn);
+               queue_element *qe = new queue_element();
+               qe->_cb = conn->cb;
+               qe->arg = (void *)conn;
+               tq->push((void *)qe);
                log->debug("acceptor : [epoll_loop]. tq->push read_conn\n");
             } else {
                if (events[i].events & EPOLLOUT) {
                   connection *conn = (connection *)events[i].data.ptr;
                   conn->cb = write_conn;
-                  tq->push((void *)conn); 
+                  queue_element *qe = new queue_element();
+                  qe->_cb = write_conn;
+                  qe->arg = (void *)conn;
+                  tq->push((void *)qe); 
                   log->debug("acceptor : [epoll_loop]. tq->push write_conn\n"); 
                }
             }

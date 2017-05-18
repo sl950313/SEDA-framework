@@ -17,6 +17,7 @@ public:
 
    read_http_status read_http_status_machine(const char *_buf, int nread);
    void print_request_info();
+   std::map<std::string, std::string> &get_map_contents();
 
 private:
    http_method method;
