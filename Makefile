@@ -2,6 +2,8 @@ LIB=-lpthread
 OBJ=acceptor.o buffer.o connect.o http_request.o job_queue.o log.o tcp_server.o worker_pool.o http_response.o
 TARGET=test_nc_server
 
+all: test_nc_server
+
 test_nc_server: $(OBJ)
 	g++ -o test_nc_server test_server.cpp $(OBJ) $(LIB) -g
 

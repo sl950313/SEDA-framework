@@ -92,7 +92,7 @@ read_http_status http_request::read_http_status_machine(const char *_buf, int nr
 
 void http_request::print_param() {
    for (std::map<std::string, std::string>::iterator it = content.begin(); it != content.end(); ++it) {
-      //printf("%s : %s\n", it->first.c_str(), it->second.c_str());
+      printf("%s : %s\n", it->first.c_str(), it->second.c_str());
    }
 }
 
