@@ -6,4 +6,10 @@
 #define BUFSIZE 1024
 #define FORCE_CLOSE 0
 
+/*
+ * For mq.
+ */
+#define MQ_LOG_PATH "./log/mq.log"
+#define MQ_PORT 16667
+
 #endif //

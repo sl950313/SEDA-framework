@@ -1,6 +1,8 @@
 #ifndef _message_queue_server_H
 #define _message_queue_server_H
 #include "worker_pool.h"
+#include "log.h"
+#include "job_queue.h"
 #include <string>
 #include <pthread.h>
 
@@ -31,18 +33,25 @@ public:
 private:
    int send(std::string msg);
    int recv();
-   int bind(std::string addr);
+   //int bind(std::string addr);
    int connect(std::string addr);
    int set_mq_mode(int _mode);
 
    int mode;
    int epfd;
    pthread_mutex_t epfd_mutex;
+   //int log_fd;
+   _log *log;
+   int init_poller();
 
    worker_pool *wp;
+   task_queue *tq;
 
    pthread_t poller_pid;
-   static void *poller(void *);
+   void *poller(void *);
+   int listenfd;
+   static void *accept_conn(void *);
+   static void *recv_msg(void *);
 };
 
 #endif // _message_queue_server_H

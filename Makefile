@@ -35,4 +35,4 @@ http_response.o: http_response.h http_response.cpp
 	g++ -c http_response.cpp -g
 
 clean:
-	rm $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(TARGET)
