@@ -102,8 +102,7 @@ void *acceptor::read_conn(void *arg) {
       conn->req->buf->push_back(_buf, nread);
       conn->req->read_http_status_machine(_buf, nread);
       //printf("_buf : \n%s.\n", _buf);
-      conn->req->print_request_info();
-
+      conn->req->print_request_info(); 
       struct epoll_event event;
       memset(&event, 0, sizeof(event));
       event.data.ptr = (void *)conn;
