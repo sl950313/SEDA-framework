@@ -1,8 +1,30 @@
 LIB=-lpthread
 OBJ=acceptor.o buffer.o connect.o http_request.o job_queue.o log.o tcp_server.o worker_pool.o http_response.o
-TARGET=test_nc_server
+OBJ_MQ=mq_conn.o message_queue_server.o worker_pool.o log.o job_queue.o mq_def.o buffer.o
+TARGET=test_nc_server message_queue_server test_mq_client
 
-all: test_nc_server
+all: message_queue_server test_mq_client test_nc_server
+
+test_mq_client: test_mq_client.o message_queue_client.o
+	g++ -o test_mq_client message_queue_client.o test_mq_client.o -g $(LIB)
+
+message_queue_client.o: message_queue/message_queue_client.h message_queue/message_queue_client.cpp
+	g++ -c message_queue/message_queue_client.cpp -g
+
+test_mq_client.o: test_mq_client.cpp message_queue/message_queue_client.h
+	g++ -c test_mq_client.cpp -g
+
+message_queue_server: $(OBJ_MQ)
+	g++ -o message_queue_server message_queue/mq_server.cpp $(OBJ_MQ) $(LIB) -g
+
+mq_conn.o: message_queue/mq_conn.cpp message_queue/mq_conn.h
+	g++ -c message_queue/mq_conn.cpp -g
+
+message_queue_server.o: worker_pool.h log.h marcos.h mq_def.h job_queue.h message_queue/message_queue_server.cpp
+	g++ -c message_queue/message_queue_server.cpp -std=c++11 
+
+mq_def.o: mq_def.h mq_def.cpp
+	g++ -c mq_def.cpp -g
 
 test_nc_server: $(OBJ)
 	g++ -o test_nc_server test_server.cpp $(OBJ) $(LIB) -g
@@ -35,4 +57,4 @@ http_response.o: http_response.h http_response.cpp
 	g++ -c http_response.cpp -g
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(TARGET) test_mq_client.o message_queue_client.o $(OBJ_MQ) $(OBJ) $(TARGET)

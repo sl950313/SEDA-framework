@@ -5,8 +5,8 @@
 
 class mq_def {
 public:
-   static buffer *encode_mq_msg(buffer *msg_content);
-   static buffer *decode_mq_msg(buffer *msg);
+   static buffer *encode_mq_msg(char *msg_content);
+   static std::string decode_mq_msg(buffer *msg);
 };
 
 #endif //_MQ_DEF_H

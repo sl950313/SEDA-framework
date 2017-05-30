@@ -6,9 +6,17 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 
 mq_client::mq_client(std::string ip_port) {
    server_ip_port = ip_port;
+}
+
+mq_client::~mq_client() {
+   wait();
 }
 
 int mq_client::connect() {
@@ -27,12 +35,33 @@ int mq_client::connect() {
    return 0;
 }
 
-int mq_client::register_mq(int role) {
-   char register_msg;
-   if (role == 0) register_msg = 0x1;
-   if (role == 1) register_msg = 0x2;
-   write(fd, &register_msg, 1);
-   return 0;
+int mq_client::register_mq(int role, char *publisher_name) {
+   char register_msg[128] = {0};
+   if (role == 0) { register_msg[0] = 0x2; }
+   if (role == 1) {
+      register_msg[0] = 0x4; 
+      sprintf(register_msg + 1, "%s", publisher_name);
+   }
+   int len = strlen(register_msg);
+   for (int i = 0; i < len; ++i) {
+      register_msg[len + 1] += register_msg[i];
+   }
+
+   return (write(fd, register_msg, len + 1) == len + 1) ? 0 : 1;
+}
+
+int mq_client::unregister_mq(int role, char *publisher_name) {
+   char register_msg[128] = {0};
+   if (role == 0) register_msg[0] = 0x8;
+   if (role == 1) {
+      register_msg[0] = 0x16;
+      sprintf(register_msg + 1, "%s", publisher_name);
+   }
+   int len = strlen(register_msg);
+   for (int i = 0; i < len; ++i) {
+      register_msg[len + 1] += register_msg[i];
+   }
+   return write(fd, register_msg, len + 1) == len + 1;
 }
 
 void mq_client::loop(callback cb) {
@@ -40,7 +69,28 @@ void mq_client::loop(callback cb) {
    pthread_create(&pid, NULL, run, this);
 }
 
+void mq_client::wait() {
+   //pthread_kill(pid, SIGKILL);
+   void *ret = NULL;
+   pthread_join(pid, &ret);
+}
+
+void mq_client::sig_handle(int sig, siginfo_t *st, void *ret) {
+
+}
+
 void *mq_client::run(void *arg) {
+   printf("Here running\n");
+   //signal(SIGKILL, sig_handle);
+   /*
+   struct sigaction act, oact;
+   //act. sa_handler = sig_handle;
+   act.sa_sigaction = sig_handle;
+   act.sa_flags = SA_SIGINFO;
+   sigemptyset(&act.sa_mask); //清空此信号集
+   act. sa_flags = 0;
+   sigaction(SIGKILL, &act, &oact);
+   */
    mq_client *mc = (mq_client *)arg;
    char buf[BUFSIZE] = {0};
    while (true) {
@@ -60,8 +110,14 @@ void *mq_client::run(void *arg) {
 }
 
 int mq_client::send(std::string msg) {
-   int nwrite = write(fd, msg.c_str(), msg.length());
-   if (nwrite != (int)msg.length()) {return -1;}
+   char send_msg[128] = {0};
+   send_msg[0] = 0x1;
+   sprintf(send_msg + 1, msg.c_str(), msg.length());
+   for (size_t i = 0; i < msg.length() + 1; ++i) {
+      send_msg[msg.length() + 1] += send_msg[i];
+   }
+   int nwrite = write(fd, send_msg, msg.length() + 2);
+   if (nwrite - 2 != (int)msg.length()) {return -1;}
    return 0;
 }
 

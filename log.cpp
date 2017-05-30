@@ -45,3 +45,48 @@ void _log::info(std::string _info) {
    sprintf(buf, "INFO : %s", _info.c_str());
    write(output_fd, _info.c_str(), _info.length());
 }
+
+void _log::_debug(const char *fmt, ...) {
+   int n;
+   int size = 100;     /* Guess we need no more than 100 bytes */
+   char *p, *np;
+   va_list ap;
+
+   if ((p = (char *)malloc(size)) == NULL)
+      return ;
+
+   while (1) {
+
+      /* Try to print in the allocated space */
+
+      va_start(ap, fmt);
+      n = vsnprintf(p, size, fmt, ap);
+      va_end(ap);
+
+      /* Check error code */
+
+      if (n < 0)
+         return ;
+
+      /* If that worked, return the string */
+
+      if (n < size) {
+         char buf[128] = {0};
+         sprintf(buf, "DEBUG : %s\n", p);
+         write(output_fd, buf, strlen(buf));
+         return ;
+         //return p;
+      }
+
+      /* Else try again with more space */
+
+      size = n + 1;       /* Precisely what is needed */
+
+      if ((np = (char *)realloc (p, size)) == NULL) {
+         free(p);
+         return ;
+      } else {
+         p = np;
+      }
+   }
+}

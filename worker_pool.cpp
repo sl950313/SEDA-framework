@@ -16,8 +16,9 @@ void *worker_pool::per_worker_task(void *arg) {
    } 
    */
    while (wp->running) {
-      //printf("%ld waiting element from queue\n", pthread_self());
+      printf("%ld waiting element from queue\n", pthread_self());
       queue_element* qe = (queue_element *)wp->jq->pop();
+      printf("%ld getting element from queue\n", pthread_self());
       //printf("%ld getting element : %d\n", pthread_self(), qe->fd);
       if (wp->worker_init_callback) {
          //printf("here?\n");
