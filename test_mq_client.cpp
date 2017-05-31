@@ -46,7 +46,10 @@ int main(int argc, char **argv) {
    ret = mc->connect();
    if (ret) handle_error((char *)"connect");
    char publisher_name[128] = {0};
-   if (role) memcpy(publisher_name, ser_ip_port.c_str(), ser_ip_port.length());
+   if (role) {
+      size_t index = ser_ip_port.find(':');
+      memcpy(publisher_name, ser_ip_port.c_str(), index);
+   }
    ret = mc->register_mq(role, publisher_name);
    if (ret) handle_error((char *)"register_mq");
    mc->loop(test_run);

@@ -44,6 +44,11 @@ private:
    bool check_msg_crc(char *buf, int n);
    void get_ip_port_from_publisher_name(std::string &ip, std::string &port, char *publisher_name);
 
+   /*
+    * topics
+    */
+
+
    int send(std::string msg);
    int recv();
    //int bind(std::string addr);

@@ -243,7 +243,8 @@ void message_queue_server::convert_addr_in_to_str(struct sockaddr_in *addr, std:
    char _addr[128] = {0}, _dst[128] = {0};
    //memset(_addr, 0, 128);
    //inet_ntop(AF_INET, addr, _addr, sizeof(_addr));
-   sprintf(_dst, "%s:%d", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
+   //sprintf(_dst, "%s:%d", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
+   sprintf(_dst, "%s", inet_ntoa(addr->sin_addr));
    dst = _dst;
    log->_debug("dst : %s", dst.c_str());
    //dst = _addr + ":" + std::to_string(ntohs(addr->sin_port));
