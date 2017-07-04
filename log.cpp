@@ -10,10 +10,21 @@
 _log::_log(std::string _log_output, int _log_level) {
    log_level = _log_level;
    log_output = _log_output.c_str();
+   running = true;
    is_async = false;
    pthread_mutex_init(&async_lock, NULL);
    int ret = init();
    if (ret == -1) _exit(-1);
+}
+
+_log::~_log() {
+   delete tq;
+}
+
+void _log::stop() {
+   running = false;
+   void *ret;
+   pthread_join(log_pid, &ret);
 }
 
 bool _log::set_async(bool async) {
@@ -37,7 +48,7 @@ void *_log::log_from_queue(void *arg) {
     * TODO:
     * Here should have a condition to let the thread stop
     */
-   while (true /* stop condition*/) { 
+   while (logger_instance->running /* stop condition*/) { 
       async_log_content *lc = (async_log_content *)tq->pop();
       write(logger_instance->output_fd, lc->log_content, LOG_LEN);
    }

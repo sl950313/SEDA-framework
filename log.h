@@ -1,6 +1,7 @@
 #ifndef _LOG_H
 #define _LOG_H
 
+#include <string.h>
 #include <string>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -15,11 +16,17 @@ enum {
 
 struct async_log_content  {
    char log_content[LOG_LEN];
+   unsigned int len_content;
+   async_log_content() {
+      memset(log_content, 0, LOG_LEN);
+      len_content = 0;
+   }
 };
 
 class _log {
 public:
    _log();
+   ~_log();
    _log(std::string _log_output, int _log_level);
    void error(std::string _error);
    void debug(std::string _debug);
@@ -28,6 +35,7 @@ public:
    void _debug(const char *fmt, ...);
    void _info(const char *fmt, ...);
    bool set_async(bool async);
+   void stop();
 
 private:
    int init();
@@ -36,6 +44,7 @@ private:
    int output_fd;
    int log_level;
    void write_log(std::string log);
+   bool running;
 
    /*
     * for async logging
