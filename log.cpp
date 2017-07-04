@@ -1,17 +1,48 @@
-#include "log.h"
-
+#include "log.h" 
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 _log::_log(std::string _log_output, int _log_level) {
    log_level = _log_level;
    log_output = _log_output.c_str();
+   is_async = false;
+   pthread_mutex_init(&async_lock, NULL);
    int ret = init();
    if (ret == -1) _exit(-1);
+}
+
+bool _log::set_async(bool async) {
+   pthread_mutex_lock(&async_lock);
+   is_async = async;
+   pthread_mutex_unlock(&async_lock);
+   tq = new mutex_task_queue();
+   int ret = pthread_create(&log_pid, NULL, log_from_queue, this);
+   if (ret != 0) fprintf(stderr, "Use of async logging error. [set_async] : %s\n", strerror(errno));
+   return ret == 0;
+}
+
+void *_log::log_from_queue(void *arg) {
+   _log *logger_instance = (_log *)arg;
+   task_queue *tq = logger_instance->tq;
+   if (!tq) {
+      fprintf(stderr, "Use of async logging error. [log_from_queue] : task_queue is NULL\n");
+      return NULL;
+   } 
+   /*
+    * TODO:
+    * Here should have a condition to let the thread stop
+    */
+   while (true /* stop condition*/) { 
+      async_log_content *lc = (async_log_content *)tq->pop();
+      write(logger_instance->output_fd, lc->log_content, LOG_LEN);
+   }
+
+   return NULL;
 }
 
 int _log::init() {
@@ -21,6 +52,19 @@ int _log::init() {
       return -1;
    }
    return 0;
+}
+
+void _log::write_log(std::string log) {
+   pthread_mutex_lock(&async_lock);
+   if (is_async) {
+      pthread_mutex_unlock(&async_lock);
+      async_log_content *alc = new async_log_content();
+      memcpy(alc->log_content, log.c_str(), LOG_LEN);
+      tq->push(alc);
+   } else {
+      pthread_mutex_unlock(&async_lock); 
+      write(output_fd, log.c_str(), log.length());
+   }
 }
 
 void _log::error(std::string _error) {
@@ -73,7 +117,9 @@ void _log::_debug(const char *fmt, ...) {
       if (n < size) {
          char buf[128] = {0};
          sprintf(buf, "DEBUG : %s\n", p);
-         write(output_fd, buf, strlen(buf));
+         write_log((std::string)buf);
+         
+         //write(output_fd, buf, strlen(buf));
          return ;
          //return p;
       }

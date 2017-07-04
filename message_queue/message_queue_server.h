@@ -47,7 +47,7 @@ private:
    /*
     * topics
     */
-
+   std::map<std::string, std::vector<std::string> > topic_msgs; 
 
    int send(std::string msg);
    int recv();

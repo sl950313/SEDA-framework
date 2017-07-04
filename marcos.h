@@ -12,4 +12,9 @@
 #define MQ_LOG_PATH "./log/mq.log"
 #define MQ_PORT 16667
 
+/*
+ * For logger.
+ */
+#define LOG_LEN 256
+
 #endif //
