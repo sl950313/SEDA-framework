@@ -3,6 +3,7 @@
 
 class IElement {
 public:
+   IElement(void *ele) : element(ele) {}
    void *getElement();
 private:
    void *element;

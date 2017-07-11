@@ -13,6 +13,7 @@ public:
    int getListenfd() {
       return listenfd;
    }
+   int getEpfd() { return epfd; }
 
 private:
    bool listen();
