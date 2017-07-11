@@ -17,4 +17,9 @@
  */
 #define LOG_LEN 256
 
+/*
+ * For config
+ */
+#define CONFIG_FILE "./config/stage_config.ini"
+
 #endif //

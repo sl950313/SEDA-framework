@@ -1,4 +1,5 @@
 #include "stage.h"
+#include "config.h"
 
 stage::stage() {
    stage("");
@@ -13,6 +14,7 @@ string stage::get_stage_name() {
 }
 
 bool stage::init() {
+   Config config(CONFIG_FILE);
    /*
     * 每个stage中的四个模块。
     */
@@ -25,7 +27,7 @@ bool stage::init() {
    sh->run();
    sc->run();
 
-   ec = new event_core();
+   ec = new event_core(config);
    return true;
 }
 
