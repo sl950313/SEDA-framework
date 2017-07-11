@@ -10,6 +10,9 @@ typedef void * (*worker_task)(void *);
 struct queue_element {
    worker_task _cb;
    void *arg;
+   queue_element() { }
+   queue_element(worker_task wt, void *_arg) : _cb(wt), arg(_arg) { 
+   }
 };
 
 class task_queue {

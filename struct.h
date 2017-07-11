@@ -41,5 +41,6 @@ enum http_proto {
 struct user_info {
 };
 */
+typedef void *(*function)(void *);
 
 #endif ///

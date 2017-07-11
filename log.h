@@ -23,17 +23,17 @@ struct async_log_content  {
    }
 };
 
-class _log {
+class LogUtil {
 public:
-   _log();
-   ~_log();
-   _log(std::string _log_output, int _log_level);
+   LogUtil();
+   ~LogUtil();
+   LogUtil(std::string _log_output, int _log_level);
    void error(std::string _error);
    void debug(std::string _debug);
    void info(std::string _info);
-   void _error(const char *fmt, ...);
-   void _debug(const char *fmt, ...);
-   void _info(const char *fmt, ...);
+   static void error(const char *fmt, ...);
+   static void debug(const char *fmt, ...);
+   static void info(const char *fmt, ...);
    bool set_async(bool async);
    void stop();
 
