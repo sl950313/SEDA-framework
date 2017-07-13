@@ -2,6 +2,7 @@
 #include "function.h"
 
 stage_handler::stage_handler(stage_queue *_sq, worker_pool *_wp) : sq(_sq), wp(_wp){ 
+   running = true;
 }
 
 bool stage_handler::setHandler(function f) {
@@ -15,8 +16,9 @@ void stage_handler::setStageQueue(stage_queue *sq) {
 
 bool stage_handler::run() {
    while (running) {
-      IElement ie = sq->pop(); 
-      Function func(fun, ie.getElement());
+      IElement *ie = sq->qpop(); 
+      Function func(fun, ie->getElement());
+      delete ie;
       wp->run(func);
    }
    return true;

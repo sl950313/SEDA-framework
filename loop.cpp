@@ -41,9 +41,9 @@ void *Loop::read_conn(void *arg) {
    while ((nread = read(peer_fd, _buf, BUFSIZE - 1)) > 0) { 
       buf->push_back(_buf, nread);
    }
-   IElement ie(buf->ptr());
-   sq->push(ie);
-
+   LogUtil::debug("buf : %s", buf->ptr());
+   IElement *ie = new IElement(buf->ptr());
+   sq->qpush(ie); 
    if (nread == 0) {
       LogUtil::debug("client closed");
       struct epoll_event event;
@@ -69,13 +69,11 @@ void Loop::loop() {
       int rd_fds = epoll_wait(epfd, events, MAXEVENTS, 1000);
       for (int i = 0; i < rd_fds; ++i) {
          if (events[i].data.fd == s->getListenfd()) {
-            //acceptor *ac = this;
             accept_conn();
          } else {
             // TODO.
             if (events[i].events & EPOLLIN) {
-               read_conn((void *)&(events[i].data.fd));
-               //read_msg();
+               read_conn((void *)(events[i].data.fd));
                LogUtil::debug("acceptor : [epoll_loop]. tq->push read_conn");
             } else {
                if (events[i].events & EPOLLOUT) {

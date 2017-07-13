@@ -1,5 +1,4 @@
 #include "stage.h"
-#include "config.h"
 
 stage::stage() {
    stage("");

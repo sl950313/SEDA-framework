@@ -7,6 +7,7 @@
 #include "stage_control.h"
 #include "event_core.h"
 #include "log.h"
+#include "config.h"
 
 using namespace std;
 
