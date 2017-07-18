@@ -17,27 +17,45 @@ Our Architecture and Technology implement:
 
 1.	Stage :
 
+
 ```
                                     
                    ---------------------------------------------
-                   |                         |---------------| |
-                   |                         | stage-control | |
-                   |                         |---------------| |
-                   |                                 ^         |
-                   |                                 |         |
-                   |                                 |         |
-   ------------    |  |---------------|      |---------------| |    ---------
-   |    MSG   |-------> Queue(ZeroMQ) ------>| stage-handler ------>|  MSG  |
-   ------------    |  |---------------|      |-------|-------| |    ---------
-                   |                                 ^         |
-                   |                                 |         |
-                   |                                 |         |
-                   |                         |---------------| |
-                   |                         | worker-pool   | |
+                   |                                           |
+                   |                                           |
+                   |                                           |
+   ------------    |  |---------------|      |---------------| |    
+   |    MSG   |------->    receiver   ------>| stage-handler | |
+   ------------    |  |---------------|      |-------|-------| |  
+                   |          ^                      ^         |
+                   |          |                      |         |
+                   |          |                      |         |
+                   |          |              |---------------| |
+                   |  |---------------|      |               | |    -------
+                   |  | stage-control |<---->|  worker-pool  ------>| MSG |
+                   |  |---------------|      |               | |    -------
                    |                         |---------------| |
                    ---------------------------------------------
                    
 ```
+
+2. Each function of module
+--------------------------
+i.    receiver:
+      a. Receive msq from other stage and forwarding to the stage-handler.
+      b. The receive is implemented by ZeroMQ.
+
+ii.   stage-handler:
+      a. The logic of handling massages, the excute units are in worker-pool.
+
+iii.  worker-pool:
+      a. A worker-pool which can be implement as thread-based or processor-based worker-pool.
+      b. The thread-based worker-pool is implemented by mutex-based and no-mutex-based.
+      c. The difference between different types of worker-pool should be done during the following days.
+
+iv.   stage-control:
+      a. Collecting infomation from receiver and worker-pool, then dynamicly adjusting the queue-num and worker-num.
+      b. But Using which method to adjust the load is still under thinking.
 
 -----------------------------------------------------------------------------
 Following is older version of README.
