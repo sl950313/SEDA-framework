@@ -6,6 +6,34 @@ This is C++ implement of SEDA framework. EveryOne can use our programming framew
 
 A http server is a example for the use of SEDA framework. It may give you help. the SEDA can be found at : The Staged Event-Driven Architecture for Highly-Concurrent Server Applications
 
+The advantages of SEDA:
+   1. The SEDA makes the deployment of architecture easier. 
+   2. TODO
+
+The disadvantages:
+   1. TODO
+
+Our Architecture and Technology implement:
+
+                                    A stage :
+                   ---------------------------------------------
+                   |                         |---------------| |
+                   |                         | stage-control | |
+                   |                         |---------------| |
+                   |                                 ^         |
+                   |                                 |         |
+                   |                                 |         |
+   |----------|    |  |---------------|      |---------------| |    |-------|
+   |    MSG   |-------- Queue(ZeroMQ) ------>| stage-handler ------>|  MSG  |
+   |----------|    |  |---------------|      |-------|-------| |    |-------|
+                   |                                 ^         |
+                   |                                 |         |
+                   |                                 |         |
+                   |                         |---------------| |
+                   |                         | worker-pool   | |
+                   |                         |---------------| |
+                   ---------------------------------------------
+
 ------------
 Following is older version of README.
 This is a distibuted big data search system. 
