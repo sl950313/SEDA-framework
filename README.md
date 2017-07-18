@@ -15,7 +15,10 @@ The disadvantages:
 
 Our Architecture and Technology implement:
 
-                                    A stage :
+1.	Stage :
+
+```
+                                    
                    ---------------------------------------------
                    |                         |---------------| |
                    |                         | stage-control | |
@@ -24,7 +27,7 @@ Our Architecture and Technology implement:
                    |                                 |         |
                    |                                 |         |
    ------------    |  |---------------|      |---------------| |    ---------
-   |    MSG   |-------- Queue(ZeroMQ) ------>| stage-handler ------>|  MSG  |
+   |    MSG   |-------> Queue(ZeroMQ) ------>| stage-handler ------>|  MSG  |
    ------------    |  |---------------|      |-------|-------| |    ---------
                    |                                 ^         |
                    |                                 |         |
@@ -33,6 +36,8 @@ Our Architecture and Technology implement:
                    |                         | worker-pool   | |
                    |                         |---------------| |
                    ---------------------------------------------
+                   
+```
 
 -----------------------------------------------------------------------------
 Following is older version of README.
