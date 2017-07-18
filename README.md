@@ -42,11 +42,12 @@ Our Architecture and Technology implement:
 2. Each function of module
 --------------------------
 i.    receiver:
-      a. Receive msq from other stage and forwarding to the stage-handler.
-      b. The receive is implemented by ZeroMQ.
+      a. The receiver is a subsriber of message-queue.
+      b. Receive msq from other stage and forwarding to the stage-handler.
+      c. The receive is implemented by ZeroMQ.
 
 ii.   stage-handler:
-      a. The logic of handling massages, the excute units are in worker-pool.
+      a. The logic of handling massages and the producer of message-queue, the excute units are in worker-pool.
 
 iii.  worker-pool:
       a. A worker-pool which can be implement as thread-based or processor-based worker-pool.

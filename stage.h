@@ -8,6 +8,7 @@
 #include "event_core.h"
 #include "log.h"
 #include "config.h"
+#include "receiver.h"
 
 using namespace std;
 
@@ -23,6 +24,7 @@ private:
    bool init();
    string stage_name;
 
+   receiver *rc;
    stage_queue *sq;
    stage_handler *sh;
    worker_pool *wp;

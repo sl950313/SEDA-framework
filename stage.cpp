@@ -21,10 +21,12 @@ bool stage::init() {
    wp = new thread_worker_pool();
    sh = new stage_handler(sq, wp);
    sc = new stage_control(sq, wp);
+   rc = new receiver(sh);
 
    wp->start();
    sh->run();
    sc->run();
+   rc->run();
 
    ec = new event_core(config);
    return true;
