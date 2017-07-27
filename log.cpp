@@ -7,18 +7,19 @@
 #include <stdio.h>
 #include <assert.h>
 
+/*
 LogUtil::LogUtil(std::string LogUtil_output, int LogUtil_level) {
-   log_level = LogUtil_level;
-   log_output = LogUtil_output.c_str();
+   LogUtil::log_level = LogUtil_level;
+   LogUtil::log_output = LogUtil_output.c_str();
    running = true;
-   is_async = false;
-   pthread_mutex_init(&async_lock, NULL);
+   LogUtil::is_async = false;
+   pthread_mutex_init(&LogUtil::async_lock, NULL);
    int ret = init();
    if (ret == -1) _exit(-1);
 }
+*/
 
 LogUtil::~LogUtil() {
-   delete tq;
 }
 
 void LogUtil::stop() {
@@ -32,14 +33,13 @@ bool LogUtil::set_async(bool async) {
    is_async = async;
    pthread_mutex_unlock(&async_lock);
    tq = new mutex_task_queue();
-   int ret = pthread_create(&log_pid, NULL, log_from_queue, this);
+   int ret = pthread_create(&log_pid, NULL, log_from_queue, NULL);
    if (ret != 0) fprintf(stderr, "Use of async logging error. [set_async] : %s\n", strerror(errno));
    return ret == 0;
 }
 
 void *LogUtil::log_from_queue(void *arg) {
-   LogUtil *logger_instance = (LogUtil *)arg;
-   task_queue *tq = logger_instance->tq;
+   task_queue *tq = tq;
    if (!tq) {
       fprintf(stderr, "Use of async logging error. [log_from_queue] : task_queue is NULL\n");
       return NULL;
@@ -48,9 +48,9 @@ void *LogUtil::log_from_queue(void *arg) {
     * TODO:
     * Here should have a condition to let the thread stop
     */
-   while (logger_instance->running /* stop condition*/) { 
+   while (running /* stop condition*/) { 
       async_log_content *lc = (async_log_content *)tq->pop();
-      write(logger_instance->output_fd, lc->log_content, LOG_LEN);
+      write(output_fd, lc->log_content, LOG_LEN);
    }
 
    return NULL;
@@ -76,29 +76,6 @@ void LogUtil::write_log(std::string log) {
       pthread_mutex_unlock(&async_lock); 
       write(output_fd, log.c_str(), log.length());
    }
-}
-
-void LogUtil::error(std::string _error) {
-   if (log_level < ERROR) return ;
-   if (!log_output) {
-      fprintf(stderr, "output_file is NULL\n");
-      return ;
-   }
-   write(output_fd, _error.c_str(), _error.length());
-}
-
-void LogUtil::debug(std::string _debug) {
-   if (log_level < DEBUG) return ;
-   char buf[128] = {0};
-   sprintf(buf, "DEBUG : %s", _debug.c_str());
-   write(output_fd, _debug.c_str(), _debug.length());
-}
-
-void LogUtil::info(std::string _info) { 
-   if (log_level < INFO) return ;
-   char buf[128] = {0};
-   sprintf(buf, "INFO : %s", _info.c_str());
-   write(output_fd, _info.c_str(), _info.length());
 }
 
 void LogUtil::debug(const char *fmt, ...) {

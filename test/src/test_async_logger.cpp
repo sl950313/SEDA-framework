@@ -9,12 +9,11 @@ int main(int argc, char **argv) {
       fprintf(stderr, "logger_test [0 or 1] [len of log], 1 : async, 0 : sync\n");
       return 1;
    }
-   _log *logger = new _log("./log_test.log", DEBUG);
-   if (atoi(argv[argc - 2]) == 1) logger->set_async(true);
+   if (atoi(argv[argc - 2]) == 1) LogUtil::set_async(true);
    struct timeval start, end;
    gettimeofday(&start, NULL);
    for (int i = 0; i < atoi(argv[argc - 1]); ++i) {
-      logger->_debug("This is a logger debug test");
+      LogUtil::debug("This is a logger debug test");
    } 
    for (int j = 0; j < 1000; ++j) {
       for (int i = 0; i < 1000; ++i) {
@@ -28,9 +27,8 @@ int main(int argc, char **argv) {
       }
    }
    gettimeofday(&end, NULL);
-   printf("logger stop command send...time : %ld, %d\n", end.tv_sec - start.tv_sec, end.tv_usec - start.tv_usec);
-   logger->stop();
+   printf("logger stop command send...time : %ld, %ld\n", end.tv_sec - start.tv_sec, end.tv_usec - start.tv_usec);
+   LogUtil::stop();
    printf("logger stopped.\n");
-   delete logger;
    return 0;
 }

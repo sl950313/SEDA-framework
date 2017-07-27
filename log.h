@@ -27,34 +27,37 @@ class LogUtil {
 public:
    LogUtil();
    ~LogUtil();
-   LogUtil(std::string _log_output, int _log_level);
-   void error(std::string _error);
-   void debug(std::string _debug);
-   void info(std::string _info);
+   //LogUtil(std::string _log_output, int _log_level);
    static void error(const char *fmt, ...);
    static void debug(const char *fmt, ...);
    static void info(const char *fmt, ...);
-   bool set_async(bool async);
-   void stop();
+   static bool set_async(bool async);
+   static void stop();
 
 private:
-   int init();
-   void make_message(const char *fmt, ...);
-   const char *log_output;
+   static int init();
+   static void make_message(const char *fmt, ...);
+   static const char *log_output;
    static int output_fd;
-   int log_level;
+   static int log_level;
    static void write_log(std::string log);
-   bool running;
+   static bool running;
 
    /*
     * for async logging
     */
    static pthread_mutex_t async_lock;
    static int is_async; 
-   pthread_t log_pid;
-   static task_queue *tq;
+   static pthread_t log_pid;
+   static task_queue *tq;// = new mutex_task_queue();
    static void *log_from_queue(void *);
 
 };
+
+pthread_mutex_t LogUtil::async_lock = PTHREAD_MUTEX_INITIALIZER;
+int LogUtil::is_async = 1;
+task_queue *LogUtil::tq = new mutex_task_queue();
+bool LogUtil::running = true;
+const char *LogUtil::log_output = "./log/server.log";
 
 #endif //

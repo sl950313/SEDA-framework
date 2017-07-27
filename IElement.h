@@ -4,7 +4,9 @@
 class IElement {
 public:
    IElement(void *ele) : element(ele) {}
-   void *getElement();
+   void *getElement() {
+      return element;
+   }
 private:
    void *element;
 };

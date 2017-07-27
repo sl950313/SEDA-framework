@@ -1,36 +1,36 @@
-LIB=-lpthread -lstdc++
-OBJ=acceptor.o buffer.o connect.o http_request.o job_queue.o log.o tcp_server.o worker_pool.o http_response.o
+LIB=-lpthread -lstdc++ -lzmq
+OBJ=acceptor.o buffer.o connect.o http_request.o job_queue.o log.o tcp_server.o worker_pool.o http_response.o 
 OBJ_MQ=mq_conn.o message_queue_server.o worker_pool.o log.o job_queue.o mq_def.o buffer.o
 TARGET=test_nc_server message_queue_server test_mq_client
 
 all: main #message_queue_server test_mq_client test_nc_server test_stage
 
-main: main.cpp stage.o
-	g++ -o main main.cpp stage.o -g $(LIB)
+main: main.cpp IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o
+	g++ -o main main.cpp IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o -g $(LIB)
 
 test_stage: test_stage.cpp  stage.o
-	g++ -o test_stage test_stage.cpp stage.o -g $(LIB)
+	g++ -o test_stage test_stage.cpp -g $(LIB)
 
 stage.o: stage.h config.h stage.cpp stage_control.o stage_queue.o stage_handler.o worker_pool.o log.o config.o receiver.o
 	g++ -c stage.cpp -g $(LIB)
 
-receiver.o: receiver.cpp receiver.h 
-	g++ -c receiver.cpp -g $(LIB)
+receiver.o: receiver.cpp receiver.h log.o
+	g++ -c receiver.cpp -g $(LIB) 
 
-stage_handler.o: stage_handler.cpp log.o stage_queue.o worker_pool.o 
-	g++ -c stage_handler.cpp -g -lstdc++
+stage_handler.o: IElement.h stage_handler.cpp log.o stage_queue.o worker_pool.o 
+	g++ -c IElement.h stage_handler.cpp -g -lstdc++
 
 stage_control.o: worker_pool.o log.o
-	g++ -c stage_control.cpp worker_pool.o log.o -g -lstdc++
+	g++ -c stage_control.cpp -g -lstdc++
 
 stage_queue.o: stage_queue.cpp job_queue.o
-	g++ -c stage_queue.cpp job_queue.o -g -lstdc++
+	g++ -c stage_queue.cpp -g -lstdc++
 
 #event_core.o: event_core.cpp event_core.h socket.o config.o loop.o
 	#g++ -c event_core.cpp -g
 
 config.o: config.cpp config.h log.o
-	g++ -c config.cpp log.o -g -lstdc++
+	g++ -c config.cpp -g -lstdc++
 
 #socket.o: socket.cpp socket.h log.o
 	#g++ -c socket.cpp log.o -g
@@ -90,4 +90,4 @@ http_response.o: http_response.h http_response.cpp
 	g++ -c http_response.cpp -g
 
 clean:
-	rm -f $(TARGET) test_mq_client.o message_queue_client.o $(OBJ_MQ) $(OBJ) $(TARGET)
+	rm -f $(TARGET) test_mq_client.o message_queue_client.o $(OBJ_MQ) $(OBJ) $(TARGET) receiver.o stage.o stage_queue.o stage_handler.o stage_control.o config.o
