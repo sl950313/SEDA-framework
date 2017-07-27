@@ -7,9 +7,9 @@
 #include <stdio.h>
 #include <assert.h>
 
-_log::_log(std::string _log_output, int _log_level) {
-   log_level = _log_level;
-   log_output = _log_output.c_str();
+LogUtil::LogUtil(std::string LogUtil_output, int LogUtil_level) {
+   log_level = LogUtil_level;
+   log_output = LogUtil_output.c_str();
    running = true;
    is_async = false;
    pthread_mutex_init(&async_lock, NULL);
@@ -17,17 +17,17 @@ _log::_log(std::string _log_output, int _log_level) {
    if (ret == -1) _exit(-1);
 }
 
-_log::~_log() {
+LogUtil::~LogUtil() {
    delete tq;
 }
 
-void _log::stop() {
+void LogUtil::stop() {
    running = false;
    void *ret;
    pthread_join(log_pid, &ret);
 }
 
-bool _log::set_async(bool async) {
+bool LogUtil::set_async(bool async) {
    pthread_mutex_lock(&async_lock);
    is_async = async;
    pthread_mutex_unlock(&async_lock);
@@ -37,8 +37,8 @@ bool _log::set_async(bool async) {
    return ret == 0;
 }
 
-void *_log::log_from_queue(void *arg) {
-   _log *logger_instance = (_log *)arg;
+void *LogUtil::log_from_queue(void *arg) {
+   LogUtil *logger_instance = (LogUtil *)arg;
    task_queue *tq = logger_instance->tq;
    if (!tq) {
       fprintf(stderr, "Use of async logging error. [log_from_queue] : task_queue is NULL\n");
@@ -56,7 +56,7 @@ void *_log::log_from_queue(void *arg) {
    return NULL;
 }
 
-int _log::init() {
+int LogUtil::init() {
    output_fd = open(log_output, O_RDWR | O_CREAT| O_APPEND, 0666);
    if (output_fd == -1) {
       fprintf(stderr, "log file init error. errormsg : %s\n", strerror(errno));
@@ -65,7 +65,7 @@ int _log::init() {
    return 0;
 }
 
-void _log::write_log(std::string log) {
+void LogUtil::write_log(std::string log) {
    pthread_mutex_lock(&async_lock);
    if (is_async) {
       pthread_mutex_unlock(&async_lock);
@@ -78,7 +78,7 @@ void _log::write_log(std::string log) {
    }
 }
 
-void _log::error(std::string _error) {
+void LogUtil::error(std::string _error) {
    if (log_level < ERROR) return ;
    if (!log_output) {
       fprintf(stderr, "output_file is NULL\n");
@@ -87,21 +87,21 @@ void _log::error(std::string _error) {
    write(output_fd, _error.c_str(), _error.length());
 }
 
-void _log::debug(std::string _debug) {
+void LogUtil::debug(std::string _debug) {
    if (log_level < DEBUG) return ;
    char buf[128] = {0};
    sprintf(buf, "DEBUG : %s", _debug.c_str());
    write(output_fd, _debug.c_str(), _debug.length());
 }
 
-void _log::info(std::string _info) { 
+void LogUtil::info(std::string _info) { 
    if (log_level < INFO) return ;
    char buf[128] = {0};
    sprintf(buf, "INFO : %s", _info.c_str());
    write(output_fd, _info.c_str(), _info.length());
 }
 
-void _log::_debug(const char *fmt, ...) {
+void LogUtil::debug(const char *fmt, ...) {
    int n;
    int size = 100;     /* Guess we need no more than 100 bytes */
    char *p, *np;

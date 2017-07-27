@@ -41,18 +41,18 @@ private:
    int init();
    void make_message(const char *fmt, ...);
    const char *log_output;
-   int output_fd;
+   static int output_fd;
    int log_level;
-   void write_log(std::string log);
+   static void write_log(std::string log);
    bool running;
 
    /*
     * for async logging
     */
-   pthread_mutex_t async_lock;
-   int is_async; 
+   static pthread_mutex_t async_lock;
+   static int is_async; 
    pthread_t log_pid;
-   task_queue *tq;
+   static task_queue *tq;
    static void *log_from_queue(void *);
 
 };

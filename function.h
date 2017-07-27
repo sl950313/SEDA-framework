@@ -4,6 +4,7 @@
 
 class Function {
 public:
+   Function() { }
    Function(function fun, void *_arg) : f(fun), arg(_arg) {}
    function getFunction() {
       return f;
@@ -11,6 +12,10 @@ public:
 
    void *getArg() {
       return arg;
+   }
+
+   void setFunction(function _f) {
+      f = _f;
    }
 
 private:

@@ -17,11 +17,16 @@ public:
    stage();
    stage(string stage_name);
    string get_stage_name();
+   bool init(Config &config);
    bool run();
    bool setHandler(stage_handler *sh);
+   void setResources(vector<string> &res);
+
+   stage_handler *getHandler() {
+      return sh;
+   }
 
 private:
-   bool init();
    string stage_name;
 
    receiver *rc;

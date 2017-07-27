@@ -1,22 +1,37 @@
 #ifndef _RECEIVER_H
 #define _RECEIVER_H 
-#include "stage_handler.h"
+#include "IElement.h"
+#include <vector>
+#include <string>
+#include <queue>
+#include <pthread.h>
+
+using namespace std;
 
 class receiver {
 public:
-   receiver(stage_handler *_sh) : sh(_sh){
-
+   receiver() { 
+      running = true;
+      pthread_mutex_init(&lock, NULL);
    }
    void run();
-   void fetchOne();
+   IElement fetchOne();
    void fetch(int count);
+
+   void setResources(vector<string> &res) {
+      this->res = res;
+   }
 
    /*
     * Need to scale the interface for stage-control.
     */
 
 private:
-   stage_handler *sh;
+
+   std::vector<std::string> res;
+   pthread_mutex_t lock;
+   std::queue<IElement > elements;
+   bool running;
 };
 
 #endif /* _RECEIVER_H */
