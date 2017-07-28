@@ -7,6 +7,14 @@
 #include <stdio.h>
 #include <assert.h>
 
+pthread_mutex_t LogUtil::async_lock = PTHREAD_MUTEX_INITIALIZER;
+int LogUtil::is_async = 1;
+task_queue *LogUtil::tq = new mutex_task_queue();
+bool LogUtil::running = true;
+const char *LogUtil::log_output = "./log/server.log";
+int LogUtil::output_fd = 0;
+int LogUtil::log_level = DEBUG;
+pthread_t LogUtil::log_pid = 0;
 /*
 LogUtil::LogUtil(std::string LogUtil_output, int LogUtil_level) {
    LogUtil::log_level = LogUtil_level;
@@ -22,20 +30,18 @@ LogUtil::LogUtil(std::string LogUtil_output, int LogUtil_level) {
 void LogUtil::stop() {
    running = false;
    void *ret;
-   pthread_join(log_pid, &ret);
+   if (is_async) pthread_join(log_pid, &ret);
+   delete tq;
 }
 
 bool LogUtil::set_async(bool async) {
    pthread_mutex_lock(&async_lock);
    is_async = async;
    pthread_mutex_unlock(&async_lock);
-   tq = new mutex_task_queue();
-   int ret = pthread_create(&log_pid, NULL, log_from_queue, NULL);
-   if (ret != 0) fprintf(stderr, "Use of async logging error. [set_async] : %s\n", strerror(errno));
-   return ret == 0;
+   return true;
 }
 
-void *LogUtil::log_from_queue(void *arg) {
+void *LogUtil::log_from_queue(void *) {
    task_queue *_tq = tq;
    if (!_tq) {
       fprintf(stderr, "Use of async logging error. [log_from_queue] : task_queue is NULL\n");
@@ -59,6 +65,11 @@ int LogUtil::init() {
       fprintf(stderr, "log file init error. errormsg : %s\n", strerror(errno));
       return -1;
    }
+   if (is_async) {
+      int ret = pthread_create(&log_pid, NULL, log_from_queue, NULL);
+      if (ret != 0) fprintf(stderr, "Use of async logging error. [set_async] : %s\n", strerror(errno));
+      return ret == 0;
+   }
    return 0;
 }
 
@@ -67,7 +78,7 @@ void LogUtil::write_log(std::string log) {
    if (is_async) {
       pthread_mutex_unlock(&async_lock);
       async_log_content *alc = new async_log_content();
-      memcpy(alc->log_content, log.c_str(), LOG_LEN);
+      memcpy(alc->log_content, log.c_str(), log.length());
       tq->push(alc);
    } else {
       pthread_mutex_unlock(&async_lock); 

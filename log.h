@@ -32,7 +32,7 @@ public:
    static bool set_async(bool async);
    static void stop();
 
-private:
+public:
    static int init();
    static void make_message(const char *fmt, ...);
    static const char *log_output;
@@ -52,10 +52,12 @@ private:
 
 };
 
+/*
 pthread_mutex_t LogUtil::async_lock = PTHREAD_MUTEX_INITIALIZER;
 int LogUtil::is_async = 1;
 task_queue *LogUtil::tq = new mutex_task_queue();
 bool LogUtil::running = true;
 const char *LogUtil::log_output = "./log/server.log";
+*/
 
 #endif //

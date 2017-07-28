@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
       return 1;
    }
    if (atoi(argv[argc - 2]) == 1) LogUtil::set_async(true);
+   LogUtil::init();
    struct timeval start, end;
    gettimeofday(&start, NULL);
    for (int i = 0; i < atoi(argv[argc - 1]); ++i) {
@@ -28,7 +29,7 @@ int main(int argc, char **argv) {
    }
    gettimeofday(&end, NULL);
    printf("logger stop command send...time : %ld, %ld\n", end.tv_sec - start.tv_sec, end.tv_usec - start.tv_usec);
-   LogUtil::stop();
+   //LogUtil::stop();
    printf("logger stopped.\n");
    return 0;
 }
