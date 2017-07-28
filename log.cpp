@@ -19,9 +19,6 @@ LogUtil::LogUtil(std::string LogUtil_output, int LogUtil_level) {
 }
 */
 
-LogUtil::~LogUtil() {
-}
-
 void LogUtil::stop() {
    running = false;
    void *ret;
@@ -39,8 +36,8 @@ bool LogUtil::set_async(bool async) {
 }
 
 void *LogUtil::log_from_queue(void *arg) {
-   task_queue *tq = tq;
-   if (!tq) {
+   task_queue *_tq = tq;
+   if (!_tq) {
       fprintf(stderr, "Use of async logging error. [log_from_queue] : task_queue is NULL\n");
       return NULL;
    } 
@@ -49,7 +46,7 @@ void *LogUtil::log_from_queue(void *arg) {
     * Here should have a condition to let the thread stop
     */
    while (running /* stop condition*/) { 
-      async_log_content *lc = (async_log_content *)tq->pop();
+      async_log_content *lc = (async_log_content *)_tq->pop();
       write(output_fd, lc->log_content, LOG_LEN);
    }
 

@@ -25,8 +25,6 @@ struct async_log_content  {
 
 class LogUtil {
 public:
-   LogUtil();
-   ~LogUtil();
    //LogUtil(std::string _log_output, int _log_level);
    static void error(const char *fmt, ...);
    static void debug(const char *fmt, ...);
