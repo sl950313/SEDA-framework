@@ -7,7 +7,7 @@ class stage_control {
 public:
    stage_control(stage_queue *_sq, worker_pool *_wp) : sq(_sq), wp(_wp){ 
    }
-   void run();
+   static void *run(void *);
 
 private:
    bool running;

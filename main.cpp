@@ -9,15 +9,19 @@ void *print(void *arg) {
 }
 
 int main(int argc, char **argv) { 
+   LogUtil::init();
+   LogUtil::debug("main.cpp : [main] config success");
    Config config(CONFIG_FILE);
    stage s1;
-   s1.init(config);
    vector<string> resources;
    resources.push_back("tcp://localhost:5666");
    s1.setResources(resources);
+   s1.init(config);
+   LogUtil::debug("main : [main] stage s1 init success");
    Function fun;
    fun.setFunction(print);
    s1.getHandler()->setHandler(fun);
+   LogUtil::debug("main : all initial over");
    s1.run();
    return 0;
 }

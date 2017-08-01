@@ -11,7 +11,7 @@ public:
    stage_handler(receiver *, stage_queue *, worker_pool *wp);
    bool setHandler(Function f);
    void setStageQueue(stage_queue *sq);
-   bool run();
+   static void *run(void *);
    bool sendMsg(IElement *ie, std::string stage);
 
 private:

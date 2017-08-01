@@ -28,6 +28,7 @@ public:
 
 private:
    string stage_name;
+   vector<string> resources;
 
    receiver *rc;
    stage_queue *sq;

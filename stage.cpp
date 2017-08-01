@@ -13,7 +13,8 @@ string stage::get_stage_name() {
 }
 
 void stage::setResources(vector<string> &res) {
-   rc->setResources(res);
+   resources = res;
+   //rc->setResources(res);
 }
 
 bool stage::init(Config &config) {
@@ -23,13 +24,20 @@ bool stage::init(Config &config) {
    sq = new stage_queue(); 
    wp = new thread_worker_pool();
    rc = new receiver();
+   rc->setResources(resources);
    sh = new stage_handler(rc, sq, wp);
    sc = new stage_control(sq, wp);
 
+   
    wp->start();
-   rc->run();
-   sh->run();
-   sc->run();
+   Function func_rc(rc->run, rc);
+   Function func_sh(sh->run, sh);
+   Function fun_sc(sc->run, sc);
+   
+   //rc->run();
+   wp->run(func_rc);
+   wp->run(func_sh);
+   wp->run(fun_sc);
 
    //ec = new event_core(config);
    return true;

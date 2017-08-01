@@ -16,12 +16,13 @@ void stage_handler::setStageQueue(stage_queue *sq) {
    this->sq = sq;
 }
 
-bool stage_handler::run() {
-   while (running) {
+void *stage_handler::run(void *arg) {
+   stage_handler *sh = (stage_handler *)arg;
+   while (sh->running) {
       //IElement ie = sq->qpop(); 
-      IElement ie = rec->fetchOne();
-      Function func(fun.getFunction(), ie.getElement());
-      wp->run(func);
+      IElement ie = sh->rec->fetchOne();
+      Function func(sh->fun.getFunction(), ie.getElement());
+      sh->wp->run(func);
    }
-   return true;
+   return sh;
 }

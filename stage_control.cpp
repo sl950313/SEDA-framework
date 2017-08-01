@@ -2,9 +2,11 @@
 #include "log.h"
 #include <unistd.h>
 
-void stage_control::run() {
-   while (running) {
+void *stage_control::run(void *arg) {
+   stage_control *sc = (stage_control *)arg;
+   while (sc->running) {
       LogUtil::debug("stage_control running");
       sleep(3);
    }
+   return NULL;
 }

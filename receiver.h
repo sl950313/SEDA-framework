@@ -14,7 +14,7 @@ public:
       running = true;
       pthread_mutex_init(&lock, NULL);
    }
-   void run();
+   static void *run(void *);
    IElement fetchOne();
    void fetch(int count);
 

@@ -1,5 +1,6 @@
 #include "worker_pool.h"
 #include "stdlib.h"
+#include "log.h"
 
 void worker_pool::run(Function func) {
    queue_element *qe = new queue_element(func.getFunction(), func.getArg());
@@ -24,7 +25,7 @@ void worker_pool::init() {
 }
 
 void *worker_pool::per_worker_task(void *arg) {
-   printf("thread %ld running\n", (long)pthread_self());
+   LogUtil::debug("thread %ld running", (long)pthread_self());
    worker_pool *wp = (worker_pool *)arg;
    /*
    if (wp->worker_init_callback) {
@@ -32,12 +33,10 @@ void *worker_pool::per_worker_task(void *arg) {
    } 
    */
    while (wp->running) {
-      printf("%ld waiting element from queue\n", (long)pthread_self());
+      LogUtil::debug("%ld waiting element from queue", (long)pthread_self());
       queue_element* qe = (queue_element *)wp->jq->pop();
-      printf("%ld getting element from queue\n", (long)pthread_self());
-      //printf("%ld getting element : %d\n", pthread_self(), qe->fd);
+      LogUtil::debug("%ld getting element from queue", (long)pthread_self());
       if (wp->worker_init_callback) {
-         //printf("here?\n");
          wp->worker_init_callback(NULL);
       } else {
          //wp->exe_work((void *)qe);
@@ -53,7 +52,7 @@ void *worker_pool::per_worker_task(void *arg) {
 void thread_worker_pool::start() {
    threads.resize(worker_num);
    running = true;
-   printf("in thread_worker_pool start\n");
+   LogUtil::debug("worker_pool : [start], worker_num : %d", worker_num);
    for (int i = 0; i < worker_num; ++i) {
       pthread_create(&(threads[i]), NULL, per_worker_task, this);
    }
