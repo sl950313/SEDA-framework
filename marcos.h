@@ -5,11 +5,12 @@
 #define MAXEVENTS 1024
 #define BUFSIZE 1024
 #define FORCE_CLOSE 0
+#define MAX_QUEUE_SIZE 51200
 
 /*
  * For worker pool
  */
-#define DEFAULT_WORKER_NUM 4
+#define DEFAULT_WORKER_NUM 8
 
 /*
  * For mq.

@@ -13,6 +13,7 @@ public:
    void setStageQueue(stage_queue *sq);
    static void *run(void *);
    bool sendMsg(IElement *ie, std::string stage);
+   Function getf() {return fun;}
 
 private:
    Function fun;

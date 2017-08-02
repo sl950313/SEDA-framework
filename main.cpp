@@ -4,7 +4,8 @@
 using namespace std;
 
 void *print(void *arg) {
-   printf("main [print] : %s", (char *)arg);
+   //printf("main [print] : %s", (char *)arg);
+   LogUtil::debug("main [print] : %s", (char *)arg);
    return NULL;
 }
 

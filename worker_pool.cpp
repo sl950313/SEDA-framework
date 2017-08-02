@@ -22,10 +22,12 @@ void worker_pool::run(Function func) {
  */
 void worker_pool::init() {
    jq = new mutex_task_queue();
+   running_num = 0;
+   pthread_mutex_init(&statics_lock, NULL);
 }
 
 void *worker_pool::per_worker_task(void *arg) {
-   LogUtil::debug("thread %ld running", (long)pthread_self());
+   //LogUtil::debug("thread %ld running", (long)pthread_self());
    worker_pool *wp = (worker_pool *)arg;
    /*
    if (wp->worker_init_callback) {
@@ -33,9 +35,14 @@ void *worker_pool::per_worker_task(void *arg) {
    } 
    */
    while (wp->running) {
-      LogUtil::debug("%ld waiting element from queue", (long)pthread_self());
+      LogUtil::debug("worker_pool : thread %ld waiting element from queue", (long)pthread_self());
       queue_element* qe = (queue_element *)wp->jq->pop();
-      LogUtil::debug("%ld getting element from queue", (long)pthread_self());
+      LogUtil::debug("worker_pool : thread %ld getting element from queue", (long)pthread_self());
+
+      pthread_mutex_lock(&wp->statics_lock);
+      wp->running_num++;
+      pthread_mutex_unlock(&wp->statics_lock);
+
       if (wp->worker_init_callback) {
          wp->worker_init_callback(NULL);
       } else {
@@ -43,10 +50,21 @@ void *worker_pool::per_worker_task(void *arg) {
          qe->_cb(qe->arg);
          delete qe;
       }
+      pthread_mutex_lock(&wp->statics_lock);
+      wp->running_num--;
+      pthread_mutex_unlock(&wp->statics_lock);
       //TODO
       //wp->worker_init_callback(qe);
    }
    return NULL;
+}
+
+int worker_pool::getRunnningWorkerNum() {
+   /*
+    * Here we can not do decision based on a current value of running num.
+    * as the value is changing all the time.
+    */
+   return running_num;
 }
 
 void thread_worker_pool::start() {

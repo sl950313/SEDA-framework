@@ -13,6 +13,8 @@ public:
    receiver() { 
       running = true;
       pthread_mutex_init(&lock, NULL);
+      pthread_mutex_init(&queue_lock, NULL);
+      pthread_cond_init(&empty_queue, NULL);
    }
    static void *run(void *);
    IElement fetchOne();
@@ -30,6 +32,9 @@ private:
 
    std::vector<std::string> res;
    pthread_mutex_t lock;
+
+   pthread_mutex_t queue_lock;
+   pthread_cond_t empty_queue;
    std::queue<IElement > elements;
    bool running;
 };

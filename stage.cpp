@@ -33,12 +33,12 @@ bool stage::init(Config &config) {
    Function func_rc(receiver::run, rc);
    Function func_sh(stage_handler::run, sh);
    Function fun_sc(stage_control::run, sc);
-   LogUtil::debug("running : %d", sc->getRunning());
+   //LogUtil::debug("running : %d", sc->getRunning());
    
    //rc->run();
    wp->run(func_rc);
-   wp->run(func_sh);
    wp->run(fun_sc);
+   wp->run(func_sh);
 
    //ec = new event_core(config);
    return true;

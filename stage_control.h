@@ -6,6 +6,7 @@
 class stage_control {
 public:
    stage_control(stage_queue *_sq, worker_pool *_wp) : sq(_sq), wp(_wp){ 
+      running = true;
    }
    static void *run(void *);
    bool getRunning() {

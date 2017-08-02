@@ -33,13 +33,15 @@ public:
    bool running;
    void set_task_queue(task_queue *_jq) {jq = _jq;}
    worker_task worker_init_callback;
+   int getRunnningWorkerNum();
 
 private:
    virtual void init();
    virtual void stop() {}
    virtual void exe_work(void *arg) {}
    task_queue *jq;
-
+   int running_num; 
+   pthread_mutex_t statics_lock;
 };
 
 class thread_worker_pool : public worker_pool {
