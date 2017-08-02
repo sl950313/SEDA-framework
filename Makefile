@@ -5,7 +5,7 @@ TARGET=test_nc_server message_queue_server test_mq_client
 
 all: main #message_queue_server test_mq_client test_nc_server test_stage
 
-main: main.cpp IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o
+main: main.cpp marcos.h IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o
 	g++ -o main main.cpp IElement.h stage_control.o stage.o config.o stage_handler.o receiver.o worker_pool.o job_queue.o log.o -g $(LIB)
 
 test_stage: test_stage.cpp  stage.o

@@ -21,6 +21,7 @@ public:
    bool run();
    bool setHandler(stage_handler *sh);
    void setResources(vector<string> &res);
+   //void loop();
 
    stage_handler *getHandler() {
       return sh;

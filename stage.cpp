@@ -58,3 +58,11 @@ bool stage::run() {
    */
    return true;
 }
+
+   /*
+void stage::loop() {
+   rc->wait();
+   sh->wait();
+   sc->wait();
+}
+   */

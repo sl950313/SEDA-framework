@@ -23,5 +23,7 @@ int main(int argc, char **argv) {
    s1.getHandler()->setHandler(fun);
    LogUtil::debug("main : all initial over");
    s1.run();
+   //s1.loop();
+   while(1) {}
    return 0;
 }

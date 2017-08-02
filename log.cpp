@@ -89,7 +89,7 @@ void LogUtil::write_log(std::string log) {
 void LogUtil::debug(const char *fmt, ...) {
    int n;
    int size = 100;     /* Guess we need no more than 100 bytes */
-   char *p, *np;
+   char *p = NULL, *np = NULL;
    va_list ap;
 
    if ((p = (char *)malloc(size)) == NULL)

@@ -10,7 +10,6 @@
 #include <vector>
 #include <stdio.h>
 
-#define DEFAULT_WORKER_NUM 8
 typedef void * (*worker_task)(void *);
 
 class worker_pool {

@@ -7,6 +7,11 @@
 #define FORCE_CLOSE 0
 
 /*
+ * For worker pool
+ */
+#define DEFAULT_WORKER_NUM 4
+
+/*
  * For mq.
  */
 #define MQ_LOG_PATH "./log/mq.log"
