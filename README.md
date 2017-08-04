@@ -3,7 +3,7 @@
 Author : Lei Shi
 
 ------------
-##Introduction:
+### Introduction:
 
 This is C++ implement of SEDA framework. EveryOne can use our programming framework to implement a high concurrency system easily.
 
@@ -21,7 +21,7 @@ A http server is a example for the use of SEDA framework. It may give you help. 
 
 -----------
 
-##Our architecture and technology implement:
+### Our architecture and technology implement:
 
 - Stage :
 
