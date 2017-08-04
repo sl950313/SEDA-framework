@@ -3,7 +3,7 @@
 Author : Lei Shi
 
 ------------
-###Introduction
+##Introduction:
 
 This is C++ implement of SEDA framework. EveryOne can use our programming framework to implement a high concurrency system easily.
 
@@ -21,7 +21,7 @@ The disadvantages:
 
 -----------
 
-###Our architecture and technology implement:
+##Our architecture and technology implement:
 
 * Stage :
 
