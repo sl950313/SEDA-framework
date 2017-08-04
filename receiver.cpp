@@ -36,15 +36,16 @@ void *receiver::run(void *arg) {
    };
    while (rc->running) { 
       memset(buf, 0, 256); 
-      LogUtil::debug("receiver : [run] recving...");
+      //LogUtil::debug("receiver : [run] recving...");
       int nrecv = zmq_recv(subscriber, buf, 256, 0);
       if (nrecv == -1) {
          LogUtil::debug("receiver [run] recving error");
          continue;
       }
-      LogUtil::debug("receiver : [run] already recv");
+      //LogUtil::debug("receiver : [run] already recv");
+      int len = (nrecv >= 256) ? 255 : nrecv;
       buf[255] = 0;
-      IElement ie(buf);
+      IElement ie(buf, len);
       pthread_mutex_lock(&rc->lock);
       if (rc->elements.size() > MAX_QUEUE_SIZE) {
          LogUtil::debug("receiver [run], the rc->queue is less");

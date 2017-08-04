@@ -21,6 +21,7 @@ public:
    bool run();
    bool setHandler(stage_handler *sh);
    void setResources(vector<string> &res);
+   void setDestination(vector<string> &res);
    //void loop();
 
    stage_handler *getHandler() {
@@ -30,6 +31,7 @@ public:
 private:
    string stage_name;
    vector<string> resources;
+   vector<string> des;
 
    receiver *rc;
    stage_queue *sq;

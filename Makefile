@@ -5,8 +5,8 @@ TARGET=test_nc_server message_queue_server test_mq_client
 
 all: main #message_queue_server test_mq_client test_nc_server test_stage
 
-main: main.cpp marcos.h IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o
-	g++ -o main main.cpp IElement.h stage_control.o stage.o config.o stage_handler.o receiver.o worker_pool.o job_queue.o log.o -g $(LIB)
+main: main.cpp marcos.h IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o sender.o
+	g++ -o main main.cpp IElement.h stage_control.o stage.o config.o stage_handler.o receiver.o worker_pool.o job_queue.o log.o sender.o -g $(LIB)
 
 test_stage: test_stage.cpp  stage.o
 	g++ -o test_stage test_stage.cpp -g $(LIB)
@@ -16,6 +16,9 @@ stage.o: stage.h config.h stage.cpp stage_control.o stage_queue.o stage_handler.
 
 receiver.o: receiver.cpp receiver.h log.o
 	g++ -c receiver.cpp -g $(LIB) 
+
+sender.o: sender.cpp
+	g++ -c sender.cpp -g $(LIB)
 
 stage_handler.o: IElement.h stage_handler.cpp log.o stage_queue.o worker_pool.o 
 	g++ -c IElement.h stage_handler.cpp -g -lstdc++
@@ -90,4 +93,4 @@ http_response.o: http_response.h http_response.cpp
 	g++ -c http_response.cpp -g
 
 clean:
-	rm -f $(TARGET) test_mq_client.o message_queue_client.o $(OBJ_MQ) $(OBJ) $(TARGET) receiver.o stage.o stage_queue.o stage_handler.o stage_control.o config.o
+	rm -f $(TARGET) test_mq_client.o message_queue_client.o $(OBJ_MQ) $(OBJ) $(TARGET) receiver.o stage.o stage_queue.o stage_handler.o stage_control.o config.o sender.o

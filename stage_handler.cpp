@@ -6,7 +6,13 @@ stage_handler::stage_handler(receiver *_rec, stage_queue *_sq, worker_pool *_wp)
    sq = _sq;
    wp = _wp;
    running = true;
+   sd = new sender();
    //fun = NULL;
+}
+
+stage_handler::stage_handler(receiver *_rec, stage_queue *_sq, worker_pool *_wp, sender *_sd) {
+   stage_handler(_rec, _sq, _wp);
+   sd = _sd;
 }
 
 bool stage_handler::setHandler(Function f) {
@@ -16,6 +22,16 @@ bool stage_handler::setHandler(Function f) {
 
 void stage_handler::setStageQueue(stage_queue *sq) {
    this->sq = sq;
+}
+
+void *stage_handler::handlerFunc(void *arg) {
+   stage_handler *sh = (stage_handler *)arg;
+   void *res_msg = sh->getf().getFunction()(sh->getElement().getElement());
+   if (!res_msg) 
+      return NULL;
+   IElement ie((char *)res_msg, strlen((char *)res_msg));
+   sh->sd->sendMsg(&ie);
+   return NULL;
 }
 
 void *stage_handler::run(void *arg) {
@@ -31,8 +47,9 @@ void *stage_handler::run(void *arg) {
    LogUtil::debug("stage_handler [run]. running");
    while (sh->running) {
       //IElement ie = sq->qpop(); 
-      IElement ie = sh->rec->fetchOne();
-      Function func(sh->fun.getFunction(), ie.getElement());
+      sh->ie = sh->rec->fetchOne();
+      //Function func(sh->fun.getFunction(), sh->ie.getElement());
+      Function func(handlerFunc, sh);
       sh->wp->run(func);
    }
    return sh;

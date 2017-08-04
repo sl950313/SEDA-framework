@@ -17,6 +17,10 @@ void stage::setResources(vector<string> &res) {
    //rc->setResources(res);
 }
 
+void stage::setDestination(vector<string> &destination) {
+   des = destination;
+}
+
 bool stage::init(Config &config) {
    /*
     * 每个stage中的四个模块。
@@ -26,6 +30,7 @@ bool stage::init(Config &config) {
    rc = new receiver();
    rc->setResources(resources);
    sh = new stage_handler(rc, sq, wp);
+   sh->setAddr(des[0]);
    sc = new stage_control(sq, wp);
 
    
