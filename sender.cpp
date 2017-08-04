@@ -12,8 +12,8 @@ sender::sender() {
 bool sender::sendMsg(IElement *ie) { 
    LogUtil::debug("sender : [sendMsg] ie : %s, %d", ie->getElement(), ie->length());
    int ret = zmq_send(publisher, ie->getElement(), ie->length(), ZMQ_DONTWAIT);
-   if (ret == -1) { 
-      if (errno == EAGAIN) {
+   if (ret != 0) { 
+      if (zmq_errno() == EAGAIN) {
          LogUtil::debug("sender : [sendMsg] the message cannot be sent at the moment");
          return false;
       }
