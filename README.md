@@ -23,7 +23,7 @@ The disadvantages:
 
 ##Our architecture and technology implement:
 
-* Stage :
+- Stage :
 
 
 ```
@@ -43,7 +43,7 @@ The disadvantages:
                    
 ```
 
-*   Each function of module
+-   Each function of module
    -  receiver:
       - The receiver is a subsriber of message-queue.
       - Receive msq from other stage and forwarding to the stage-handler.
