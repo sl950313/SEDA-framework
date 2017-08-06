@@ -14,10 +14,11 @@ int main(int argc, char **argv) {
    LogUtil::debug("main.cpp : [main] config success");
    Config config(CONFIG_FILE);
    stage s1;
-   vector<string> resources, des;
+   vector<string> resources;
+   string des;
    resources.push_back("tcp://localhost:5666");
    s1.setResources(resources);
-   des.push_back("tcp://*:5667");
+   des = "tcp://*:5667";
    s1.setDestination(des);
    s1.init(config);
    LogUtil::debug("main : [main] stage s1 init success");
