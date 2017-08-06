@@ -20,18 +20,30 @@ public:
    bool init(Config &config);
    bool run();
    bool setHandler(stage_handler *sh);
-   void setResources(vector<string> &res);
-   void setDestination(vector<string> &res);
+   void setResources(vector<string> &res) {
+      this->resources = res;
+   }
+   void setDestination(string &des) {
+      this->des = des;
+   }
    //void loop();
 
    stage_handler *getHandler() {
       return sh;
    }
 
+   void setId(int id) {
+      this->stage_id = id;
+   }
+   void setStageName(string &name) {
+      this->stage_name = name;
+   }
+
 private:
    string stage_name;
    vector<string> resources;
-   vector<string> des;
+   string des;
+   int stage_id;
 
    receiver *rc;
    stage_queue *sq;
