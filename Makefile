@@ -2,7 +2,7 @@ LIB=-lpthread -lzmq
 OBJ=acceptor.o buffer.o connect.o http_request.o job_queue.o log.o tcp_server.o worker_pool.o http_response.o 
 OBJ_MQ=mq_conn.o message_queue_server.o worker_pool.o log.o job_queue.o mq_def.o buffer.o
 TARGET=test_nc_server message_queue_server test_mq_client
-CC=g++-7
+CC=g++
 
 all: main #message_queue_server test_mq_client test_nc_server test_stage
 
