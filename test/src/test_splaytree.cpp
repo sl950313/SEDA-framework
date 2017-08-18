@@ -1,4 +1,4 @@
-#include "../splaytree.h"
+#include "../../splaytree.h"
 #include <stdio.h>
 
 int main() {

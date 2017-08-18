@@ -1,6 +1,7 @@
 #ifndef _STAGE_H
 #define _STAGE_H
 #include <string> 
+#include <map>
 #include "stage_queue.h"
 #include "stage_handler.h"
 #include "worker_pool.h"
@@ -39,6 +40,10 @@ public:
       this->stage_name = name;
    }
 
+   void static setPersistData(string key, void *data);
+   static void *getPersistData(string key);
+   static map<string, void *> persistData;
+
 private:
    string stage_name;
    vector<string> resources;
@@ -51,6 +56,7 @@ private:
    worker_pool *wp;
    stage_control *sc;
    event_core *ec;
+
 };
 
 #endif /* _STAGE_H */

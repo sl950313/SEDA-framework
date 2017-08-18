@@ -1,6 +1,8 @@
 #ifndef _STRUCT_H
 #define _STRUCT_H
 
+typedef char byte;
+
 enum connect_status {
    CONNECT = 1,
    READ_HTTP,
