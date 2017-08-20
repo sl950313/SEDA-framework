@@ -12,6 +12,7 @@ string stage::get_stage_name() {
    return stage_name;
 }
 
+/*
 void stage::setPersistData(string key, void *data) {
    persistData.insert(pair<string, void *>(key, data));
 }
@@ -19,6 +20,7 @@ void stage::setPersistData(string key, void *data) {
 void *stage::getPersistData(string key){
    return persistData[key];
 }
+*/
 
 bool stage::init(Config &config) {
    /*

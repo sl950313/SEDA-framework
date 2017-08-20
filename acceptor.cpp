@@ -9,6 +9,11 @@
 #include <sys/epoll.h>
 #include <fcntl.h> 
 #include <unistd.h>
+#include <string>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+
+using namespace std;
 
 acceptor::~acceptor() {
 }
@@ -16,28 +21,27 @@ acceptor::~acceptor() {
 acceptor::acceptor() {
    port = DEFAULT_TCP_PORT;
    init_acceptor();
+   init_worker_pool();
 }
 
-acceptor::acceptor(_log *log) {
-   this->log = log;
-   port = DEFAULT_TCP_PORT;
-   init_acceptor();
-   this->log->info("acceptor : [acceptor(_log *)]\n");
-   //count = 0;
-}
-
-acceptor::acceptor(int _port, _log *log) {
+acceptor::acceptor(int _port) {
    port = _port;
    init_acceptor();
-   this->log = log;
+   init_worker_pool();
+}
+
+bool acceptor::init_worker_pool() {
+   wp = new thread_worker_pool();
+   wp->start();
+   return true;
 }
 
 bool acceptor::init_acceptor() {
-   log->debug("acceptor : [init_acceptor]\n");
+   LogUtil::debug("acceptor : [init_acceptor]");
    int ret = 0;
    if ((ret = (listenfd = socket(AF_INET, SOCK_STREAM, 0))) == -1) {
       // log here.
-      fprintf(stderr, "create socket error\n");
+      LogUtil::debug("create socket error");
       return false;
    }
    struct sockaddr_in actual_addr;
@@ -64,8 +68,6 @@ bool acceptor::init_acceptor() {
 
 void *acceptor::accept_conn(void) {
    //acceptor *ac = (acceptor *)conn->arg;
-   log->debug("acceptor : [accept_conn]\n");
-   //printf("accept_conn\n");
    struct sockaddr_in actual_addr;
    int len = sizeof(struct sockaddr);
    int peer_sock = -1;
@@ -73,13 +75,13 @@ void *acceptor::accept_conn(void) {
       connection *conn = new connection();
       conn->fd = peer_sock;
       conn->epfd = epfd;
+      LogUtil::debug("acceptor : [accept_conn] fd=%d", conn->fd);
       fcntl(peer_sock, F_SETFL, SOCK_NONBLOCK);
       struct epoll_event event;
       memset(&event, 0, sizeof(event));
       event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
       event.data.ptr = (void *)conn;
       epoll_ctl(epfd, EPOLL_CTL_ADD, peer_sock, &event); 
-      //printf("accept fd : %d\n", conn->fd);
       
       // insert into map.
       //fd_conn.insert(std::pair<int, connection *>(peer_sock, conn));
@@ -93,21 +95,17 @@ void *acceptor::accept_conn(void) {
 }
 
 void *acceptor::read_conn(void *arg) {
-   //printf("in read_conn.\n");
    connection *conn = (connection *)arg;
    int nread = -1;
    char _buf[BUFSIZE] = {0};
    while ((nread = read(conn->fd, _buf, BUFSIZE - 1)) > 0) {
-      //_buf[nread - 1] = '\0';
       conn->req->buf->push_back(_buf, nread);
       conn->req->read_http_status_machine(_buf, nread);
-      //printf("_buf : \n%s.\n", _buf);
       conn->req->print_request_info(); 
       struct epoll_event event;
       memset(&event, 0, sizeof(event));
       event.data.ptr = (void *)conn;
       if (conn->req->rhs == READ_HTTP_FINISH) {
-         //printf("%lu, fd : %d. request has already been processed\n", pthread_self(), conn->fd);
          event.events = EPOLLOUT | EPOLLET | EPOLLONESHOT; 
          conn->set_user_info_to_handle();
       } else { 
@@ -116,14 +114,12 @@ void *acceptor::read_conn(void *arg) {
       int ret = epoll_ctl(conn->epfd, EPOLL_CTL_MOD, conn->fd, &event);
       if (ret == -1) fprintf(stderr, "epoll_ctl : %d EROLL_CTL_MOD EPOLL_OUT.", conn->fd);
    }
-   //printf("%lu ---------------rhs : %d\n", pthread_self(), conn->req->rhs);
    if (nread == 0) {
-      printf("%lu, %d read 0. client closed\n", pthread_self(), conn->fd);
+      LogUtil::debug("%d read 0. client closed", conn->fd);
       struct epoll_event event;
       memset(&event, 0, sizeof(event));
       int ret = epoll_ctl(conn->epfd, EPOLL_CTL_DEL, conn->fd, &event);
       if (ret == -1) {
-         //perror("epoll_ctl : read_conn");
          printf("epoll_ctl : EPOLL_CTL_DEL : %s\n", strerror(errno));
       }
 
@@ -141,30 +137,68 @@ void *acceptor::read_conn(void *arg) {
    return NULL;
 }
 
+void *acceptor::writeBody(string &rsp_content, connection *conn) {
+   char filename[64] = {0};
+   char *url = conn->req->getUrl();
+   int len = strlen(url);
+   sprintf(filename, "/var/www/html%s", (len == 1) ? "/index.html" : url);
+   FILE *fp = fopen(filename, "r");
+   if (!fp) {
+      LogUtil::debug("file %s open error. %s", filename, strerror(errno));
+      return NULL;
+   } 
+   char buf[1024] = {0};
+   while (1) {
+      int nread = fread(buf, 1, 1023, fp); 
+      if (nread == 0) {
+         break;
+      }
+      rsp_content += buf;
+   }
+   fclose(fp);
+
+   return NULL;
+}
+
 void *acceptor::write_conn(void *arg) { 
    connection *conn = (connection *)arg;
    //conn->rsp;
-   std::string rsp_content = "I have already receive your request. please wait...";
-   std::string rsp_head = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(rsp_content.length()) + "\r\n\r\n";
-   std::string rsp = rsp_head + rsp_content;
-   //std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(rsp_content.length()) + "\r\nI have already receive your request. please wait...";
-   int nwrite = 0;
-   int len = rsp.length();
-   while (len > 0) { 
-      nwrite = write(conn->fd, rsp.c_str() + rsp.length() - len, len);
-      if (nwrite < len) {
-         if (nwrite == -1 && errno != EAGAIN) perror("write error");
-         if (nwrite == -1) break;
-      }
-      len -= nwrite;
-      //printf("%lu nwrite : %d, len : %d\n", pthread_self(), nwrite, len);
-   }
-   //printf("%lu write to %d\n", (unsigned long)pthread_self(), conn->fd);
-   //write(conn->fd, rsp_content.c_str(), rsp_content.length());
-   //while ((nwrite = write(conn->fd, response.c_str(), response.length())) > 0) {
-   //}
+   LogUtil::debug("acceptor : write_conn, url=%s", conn->req->getUrl());
+   if (!USE_SENDFILE) {
+      std::string rsp_content = "I have already receive your request. please wait...";
+      writeBody(rsp_content, conn);
+      std::string rsp_head = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(rsp_content.length()) + "\r\n\r\n";
+      std::string rsp = rsp_head + rsp_content;
 
+      int nwrite = 0;
+      int len = rsp.length();
+      while (len > 0) { 
+         nwrite = write(conn->fd, rsp.c_str() + rsp.length() - len, len);
+         if (nwrite < len) {
+            if (nwrite == -1 && errno != EAGAIN) perror("write error");
+            if (nwrite == -1) break;
+         }
+         len -= nwrite;
+      }
+   } else {
+      char filename[64] = {0};
+      char *url = conn->req->getUrl();
+      int len = strlen(url);
+      sprintf(filename, "/var/www/html%s", (len == 1) ? "/index.html" : url);
+      int fd = open(filename, O_RDONLY);
+      if (fd <= 0) {
+         LogUtil::debug("file %s open error. %s", filename, strerror(errno));
+         return NULL;
+      }
+      struct stat stat_buf;
+      fstat(fd, &stat_buf);
+      int nwrite = sendfile(conn->fd, fd, NULL, stat_buf.st_size);
+   }
+
+   LogUtil::debug("write_conn : write success");
    // TODO
+   // 关闭单工通道.
+   //close(conn->fd);
 
    if (FORCE_CLOSE) {
       struct epoll_event event;
@@ -174,7 +208,7 @@ void *acceptor::write_conn(void *arg) {
       int ret = epoll_ctl(conn->epfd, EPOLL_CTL_DEL, conn->fd, &event); 
       if (ret == -1) {
          //perror("epoll_ctl : read_conn");
-         printf("epoll_ctl : %d read_conn EPOLL_CTL_MOD. %s\n", conn->fd, strerror(errno));
+         printf("epoll_ctl_1 : %d read_conn EPOLL_CTL_MOD. %s\n", conn->fd, strerror(errno));
       }
       close(conn->fd);
       delete conn;
@@ -188,19 +222,14 @@ void *acceptor::write_conn(void *arg) {
    event.data.ptr = (void *)conn;
    int ret = epoll_ctl(conn->epfd, EPOLL_CTL_MOD, conn->fd, &event); 
    if (ret == -1) {
-      //perror("epoll_ctl : read_conn");
-      printf("epoll_ctl : %d read_conn EPOLL_CTL_MOD. %s\n", conn->fd, strerror(errno));
+      LogUtil::debug("epoll_ctl_2 : %d read_conn EPOLL_CTL_MOD. %s\n", conn->fd, strerror(errno));
    }
-   printf("%lu write_conn already success.\n", pthread_self());
 
-   /*
-    * 填写response并返回后, 不应该关闭该套接字, 然后再read_conn中删除epfd中的conn->fd.
-    */
-   //close(conn->fd);
    return NULL;
 }
 
 bool acceptor::epoll_loop() {
+   //fork();
    epfd = epoll_create1(EPOLL_CLOEXEC);
    struct epoll_event event;
    memset(&event, 0, sizeof(event));
@@ -209,8 +238,7 @@ bool acceptor::epoll_loop() {
    epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &event);
    struct epoll_event events[MAXEVENTS];
 
-   //printf("acceptor looping\n");
-   log->info("acceptor looping\n");
+   LogUtil::debug("acceptor looping");
 
    for (;;) {
       int rd_fds = epoll_wait(epfd, events, MAXEVENTS, 1000);
@@ -223,20 +251,16 @@ bool acceptor::epoll_loop() {
             if (events[i].events & EPOLLIN) {
                connection *conn = (connection *)events[i].data.ptr;
                conn->cb = read_conn;
-               queue_element *qe = new queue_element();
-               qe->_cb = conn->cb;
-               qe->arg = (void *)conn;
-               tq->push((void *)qe);
-               log->debug("acceptor : [epoll_loop]. tq->push read_conn\n");
+               Function func(conn->cb, conn);
+               wp->run(func);
+               LogUtil::debug("acceptor : [epoll_loop]. tq->push read_conn %d", conn->fd);
             } else {
                if (events[i].events & EPOLLOUT) {
                   connection *conn = (connection *)events[i].data.ptr;
                   conn->cb = write_conn;
-                  queue_element *qe = new queue_element();
-                  qe->_cb = write_conn;
-                  qe->arg = (void *)conn;
-                  tq->push((void *)qe); 
-                  log->debug("acceptor : [epoll_loop]. tq->push write_conn\n"); 
+                  Function func(conn->cb, conn);
+                  wp->run(func);
+                  LogUtil::debug("acceptor : [epoll_loop]. tq->push write_conn %d", conn->fd); 
                }
             }
          }
@@ -247,5 +271,4 @@ bool acceptor::epoll_loop() {
 
 void acceptor::start() {
    epoll_loop();
-   //init_acceptor();
 }

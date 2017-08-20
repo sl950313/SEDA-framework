@@ -6,11 +6,12 @@
 #define BUFSIZE 1024
 #define FORCE_CLOSE 0
 #define MAX_QUEUE_SIZE 51200
+#define USE_SENDFILE 1
 
 /*
  * For worker pool
  */
-#define DEFAULT_WORKER_NUM 8
+#define DEFAULT_WORKER_NUM 20
 
 /*
  * For mq.

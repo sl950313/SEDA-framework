@@ -4,10 +4,13 @@ OBJ_MQ=mq_conn.o message_queue_server.o worker_pool.o log.o job_queue.o mq_def.o
 TARGET=test_nc_server message_queue_server test_mq_client
 CC=g++
 
-all: main #message_queue_server test_mq_client test_nc_server test_stage
+all: main acceptor-stage#message_queue_server test_mq_client test_nc_server test_stage
 
 main: main.cpp marcos.h IElement.h stage.o config.o stage_handler.o receiver.o stage_control.o worker_pool.o job_queue.o log.o sender.o
 	$(CC) -o main main.cpp IElement.h stage_control.o stage.o config.o stage_handler.o receiver.o worker_pool.o job_queue.o log.o sender.o -g $(LIB)
+
+acceptor-stage: acceptor_stage.cpp acceptor.o log.o buffer.o http_request.o connect.o
+	$(CC) -o acceptor-stage acceptor_stage.cpp buffer.o http_request.o connect.o log.o acceptor.o worker_pool.o job_queue.o $(LIB) -g
 
 test_stage: test_stage.cpp  stage.o
 	$(CC) -o test_stage test_stage.cpp -g $(LIB)
@@ -30,17 +33,8 @@ stage_control.o: worker_pool.o log.o
 stage_queue.o: stage_queue.cpp job_queue.o
 	$(CC) -c stage_queue.cpp -g -lstdc++
 
-#event_core.o: event_core.cpp event_core.h socket.o config.o loop.o
-	#$(CC) -c event_core.cpp -g
-
 config.o: config.cpp config.h log.o
 	$(CC) -c config.cpp -g -lstdc++
-
-#socket.o: socket.cpp socket.h log.o
-	#$(CC) -c socket.cpp log.o -g
-
-#loop.o: loop.cpp loop.h stage_queue.o socket.o
-	#$(CC) -c loop.cpp stage_queue.o socket.o -g
 
 test_mq_client: test_mq_client.o message_queue_client.o
 	$(CC) -o test_mq_client message_queue_client.o test_mq_client.o -g $(LIB)

@@ -40,7 +40,7 @@ public:
       this->stage_name = name;
    }
 
-   void static setPersistData(string key, void *data);
+   static void setPersistData(string key, void *data);
    static void *getPersistData(string key);
    static map<string, void *> persistData;
 

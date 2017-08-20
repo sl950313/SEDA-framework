@@ -27,7 +27,6 @@ void worker_pool::init() {
 }
 
 void *worker_pool::per_worker_task(void *arg) {
-   //LogUtil::debug("thread %ld running", (long)pthread_self());
    worker_pool *wp = (worker_pool *)arg;
    /*
    if (wp->worker_init_callback) {
@@ -35,9 +34,7 @@ void *worker_pool::per_worker_task(void *arg) {
    } 
    */
    while (wp->running) {
-      LogUtil::debug("worker_pool : thread %ld waiting element from queue", (long)pthread_self());
       queue_element* qe = (queue_element *)wp->jq->pop();
-      LogUtil::debug("worker_pool : thread %ld getting element from queue", (long)pthread_self());
 
       pthread_mutex_lock(&wp->statics_lock);
       wp->running_num++;
