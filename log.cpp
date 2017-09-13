@@ -11,7 +11,7 @@ pthread_mutex_t LogUtil::async_lock = PTHREAD_MUTEX_INITIALIZER;
 int LogUtil::is_async = 1;
 task_queue *LogUtil::tq = new mutex_task_queue();
 bool LogUtil::running = true;
-const char *LogUtil::log_output = "./log/server.log";
+const char *LogUtil::log_output = "./log/server";
 int LogUtil::output_fd = 0;
 int LogUtil::log_level = DEBUG;
 pthread_t LogUtil::log_pid = 0;
@@ -60,7 +60,9 @@ void *LogUtil::log_from_queue(void *) {
 }
 
 int LogUtil::init() {
-   output_fd = open(log_output, O_RDWR | O_CREAT| O_APPEND, 0666);
+   char out[128] = {0};
+   sprintf(out, "%s_%d.log", log_output, getpid());
+   output_fd = open(out, O_RDWR | O_CREAT| O_APPEND, 0666);
    if (output_fd == -1) {
       fprintf(stderr, "log file init error. errormsg : %s\n", strerror(errno));
       return -1;
