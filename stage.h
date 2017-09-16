@@ -16,6 +16,7 @@ using namespace std;
 class stage { 
 public:
    stage();
+   ~stage();
    stage(string stage_name);
    string get_stage_name();
    bool init(Config &config);
@@ -40,7 +41,7 @@ public:
       this->stage_name = name;
    }
 
-   static void setPersistData(string key, void *data);
+   static void setPersistData(string key);
    static void *getPersistData(string key);
    static map<string, void *> persistData;
 
@@ -56,6 +57,8 @@ private:
    worker_pool *wp;
    stage_control *sc;
    event_core *ec;
+
+   void **reg_mem;
 
 };
 

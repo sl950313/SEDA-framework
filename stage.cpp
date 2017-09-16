@@ -6,6 +6,17 @@ stage::stage() {
 
 stage::stage(string stage_name) {
    this->stage_name = stage_name;
+   this->reg_mem = (void **)malloc(sizeof(void *) * REG_MEM);
+   memset(this->reg_mem, 0, sizeof(void *) * REG_MEM);
+}
+
+stage::~stage() {
+   for (int i = 0; i < REG_MEM; ++i) {
+      if (reg_mem[i]) {
+         free(reg_mem[i]);
+      }
+   }
+   free(reg_mem);
 }
 
 string stage::get_stage_name() {
@@ -62,6 +73,7 @@ bool stage::run() {
    }
    ec->run();
    */
+   while (true) {}
    return true;
 }
 

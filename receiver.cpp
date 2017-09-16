@@ -45,7 +45,7 @@ void *receiver::run(void *arg) {
       //LogUtil::debug("receiver : [run] already recv");
       int len = (nrecv >= 256) ? 255 : nrecv;
       buf[255] = 0;
-      IElement ie(buf, len);
+      IElement ie(buf, len + 1);
       pthread_mutex_lock(&rc->lock);
       if (rc->elements.size() > MAX_QUEUE_SIZE) {
          LogUtil::debug("receiver [run], the rc->queue is less");

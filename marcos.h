@@ -7,6 +7,7 @@
 #define FORCE_CLOSE 0
 #define MAX_QUEUE_SIZE 51200
 #define USE_SENDFILE 1
+#define REG_MEM 16
 
 /*
  * For worker pool

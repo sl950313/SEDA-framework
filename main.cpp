@@ -8,20 +8,50 @@
 #include <syslog.h>
 #include <vector>
 #include <string>
+#include <string.h>
+#include "splaytree.h"
+#include "utiltools.h"
+#include <sys/time.h>
+
 using namespace std;
 
 void *lookUpRedis(void *arg) {
-   LogUtil::debug("main [print] : %s", (char *)arg);
+   LogUtil::debug("main [lookUpRedis] : %s", (char *)arg);
    return arg;
 }
 
 void *searchCache(void *arg) {
-   LogUtil::debug("main [print] : %s", (char *)arg);
+   LogUtil::debug("main [searchCache] : %s", (char *)arg);
+   test_msg tm;
+   memcpy(&tm, arg, sizeof(tm));
+   LogUtil::debug("main [searchCache] : name=%s,passwd=%s", tm.name, tm.passwd);
+
+   void *cache = NULL;
+   cache = stage::getPersistData("cache");
+   if (!cache) {
+      stage::setPersistData("cache");
+   }
+   splay_tree *splay_tree_cache = (splay_tree *)cache;
+   splay_tree *r = splaytree_splay(splay_tree_cache, utiltool::hash((char *)arg, strlen((char *)arg)));
+   if (r) { 
+      LogUtil::debug("main [searchCache] : cache hit");
+      struct timeval time;
+      gettimeofday(&time, NULL);
+      tm.end_time = time.tv_sec % 1000 * 1000 + time.tv_usec / 1000;
+      LogUtil::debug("main [success] : time cost=%ld", tm.end_time - tm.begin_time);
+      return NULL;
+   }
+   
    return arg;
 }
 
 void *receiveAndResponse(void *arg) {
-   LogUtil::debug("main [print] : %s", (char *)arg);
+   LogUtil::debug("main [receiveAndResponse] : %s", (char *)arg);
+   
+   test_msg tm;
+   memcpy(&tm, arg, sizeof(tm));
+   LogUtil::debug("main [receiveAndResponse] : name=%s,passwd=%s\n", tm.name, tm.passwd);
+   
    return arg;
 }
 
@@ -97,21 +127,20 @@ void daemonize() {
    syslog(LOG_DEBUG, "daem ok ");    
 }
 
-void runStage(vector<string> &res, string &des, void *(*handler)(void *)) {
+void runStage(vector<string> &res, string &des, void *(*handler)(void *), const char *stage_name) {
    LogUtil::init();
    LogUtil::debug("main.cpp : [main] config success");
    Config config(CONFIG_FILE);
 
-   stage s;
+   stage s(stage_name);
    s.setResources(res);
    s.setDestination(des);
    s.init(config);
-   LogUtil::debug("main : [main] stage s1 init success");
+   LogUtil::debug("main : [main] stage %s init success", stage_name);
    Function fun;
    fun.setFunction(handler);
    s.getHandler()->setHandler(fun);
    s.run();
-   while (1) {}
 }
 
 int main(int argc, char **argv) { 
@@ -121,8 +150,8 @@ int main(int argc, char **argv) {
    vector<string> _des;
    vector<string> resources;
    string des;
-   resources.push_back("tcp://localhost:80");
    resources.push_back("tcp://localhost:5666");
+   //resources.push_back("tcp://localhost:5666");
    res.push_back(resources);
    resources.clear();
    resources.push_back("tcp://localhost:5667");
@@ -139,20 +168,20 @@ int main(int argc, char **argv) {
       /*
        * stage 1.
        */
-      runStage(res[0], _des[0], receiveAndResponse);
+      runStage(res[0], _des[0], receiveAndResponse, "receive_response");
    } else {
       if (pid < 0) {
          fprintf(stderr, "fork error\n");
          exit(-1);
       } else {
          if ((pid = fork())) {
-            runStage(res[1], _des[1], searchCache);
+            runStage(res[1], _des[1], searchCache, "search_cache");
          } else {
             if (pid < 0) {
                fprintf(stderr, "fork error\n");
                exit(-1);
             }
-            runStage(res[2], _des[2], lookUpRedis);
+            runStage(res[2], _des[2], lookUpRedis, "lookup_redis");
          }
       }
    }

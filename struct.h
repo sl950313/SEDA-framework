@@ -45,4 +45,10 @@ struct user_info {
 */
 typedef void *(*function)(void *);
 
+struct test_msg {
+   char name[8];
+   char passwd[8];
+   long begin_time, end_time;
+};
+
 #endif ///

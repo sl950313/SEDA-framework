@@ -10,3 +10,15 @@ std::list<char *> split_string(char *src, char *tail, char token) {
    }
    return _l;
 }
+
+unsigned int utiltool::hash(const char *_str, int len) {
+   unsigned int hash = 0;
+
+   char *str = (char *)_str;
+   while (len--) {
+      // equivalent to: hash = 65599*hash + (*str++);
+      hash = (*str++) + (hash << 6) + (hash << 16) - hash;
+   }
+
+   return (hash & 0x7FFFFFFF);
+}
