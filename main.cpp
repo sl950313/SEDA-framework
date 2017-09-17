@@ -20,11 +20,12 @@ void *lookUpRedis(void *arg) {
    return arg;
 }
 
+/*
+ * search cache. 0x00 + [data]
+ * insert into cache. 0x01 + [data]
+ */
 void *searchCache(void *arg) {
    LogUtil::debug("main [searchCache] : %s", (char *)arg);
-   test_msg tm;
-   memcpy(&tm, arg, sizeof(tm));
-   LogUtil::debug("main [searchCache] : name=%s,passwd=%s", tm.name, tm.passwd);
 
    void *cache = NULL;
    cache = stage::getPersistData("cache");
@@ -32,26 +33,37 @@ void *searchCache(void *arg) {
       stage::setPersistData("cache");
    }
    splay_tree *splay_tree_cache = (splay_tree *)cache;
-   splay_tree *r = splaytree_splay(splay_tree_cache, utiltool::hash((char *)arg, strlen((char *)arg)));
-   if (r) { 
-      LogUtil::debug("main [searchCache] : cache hit");
-      struct timeval time;
-      gettimeofday(&time, NULL);
-      tm.end_time = time.tv_sec % 1000 * 1000 + time.tv_usec / 1000;
-      LogUtil::debug("main [success] : time cost=%ld", tm.end_time - tm.begin_time);
-      return NULL;
+   if (*(char *)arg == 1) {
+      /*
+       * search cache
+       */
+      test_msg tm;
+      memcpy(&tm, (char *)arg + 1, sizeof(tm));
+      LogUtil::debug("main [searchCache] : name=%s,passwd=%s", tm.name, tm.passwd);
+
+      splay_tree *r = splaytree_splay(splay_tree_cache, utiltool::hash((char *)arg, strlen((char *)arg)));
+      if (r) { 
+         LogUtil::debug("main [searchCache] : cache hit");
+         struct timeval time;
+         gettimeofday(&time, NULL);
+         tm.end_time = time.tv_sec % 1000 * 1000 + time.tv_usec / 1000;
+         LogUtil::debug("main [success] : time cost=%ld", tm.end_time - tm.begin_time);
+         return NULL;
+      }
+   } else {
+      splaytree_insert(splay_tree_cache, utiltool::hash((char *)arg + 1, strlen((char *)arg + 1)), arg);
    }
-   
-   return arg;
+
+   return (void *)((char *)arg + 1);
 }
 
 void *receiveAndResponse(void *arg) {
    LogUtil::debug("main [receiveAndResponse] : %s", (char *)arg);
-   
+
    test_msg tm;
    memcpy(&tm, arg, sizeof(tm));
    LogUtil::debug("main [receiveAndResponse] : name=%s,passwd=%s\n", tm.name, tm.passwd);
-   
+
    return arg;
 }
 
