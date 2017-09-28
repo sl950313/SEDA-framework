@@ -11,6 +11,7 @@
 #include <string.h>
 #include "splaytree.h"
 #include "utiltools.h"
+#include "redis_client.h"
 #include <sys/time.h>
 
 using namespace std;
@@ -23,7 +24,7 @@ void *lookUpRedis(void *arg) {
 /*
  * search cache. 0x00 + [data]
  * insert into cache. 0x01 + [data]
- */
+ */ 
 void *searchCache(void *arg) {
    LogUtil::debug("main [searchCache] : %s", (char *)arg);
 
@@ -32,11 +33,24 @@ void *searchCache(void *arg) {
    if (!cache) {
       stage::setPersistData("cache");
    }
+   redisClient *rc = new redisClient();
+   int port = 6379;
+   const char *ip = "127.0.0.1";
+   bool suc = rc->connect(ip, port);
+   if (!suc) {
+      LogUtil::debug("connect %s:%d fail", ip, port);
+      return NULL;
+   }
+
+   char command[128] = {0};
+   const char *name = "shilei";
+   sprintf(command, "get %s", name); 
+   redisReply *r = rc->command(command); 
+   LogUtil::debug("name : %s, result : %s", name, r->str);
+
+   /*
    splay_tree *splay_tree_cache = (splay_tree *)cache;
    if (*(char *)arg == 1) {
-      /*
-       * search cache
-       */
       test_msg tm;
       memcpy(&tm, (char *)arg + 1, sizeof(tm));
       LogUtil::debug("main [searchCache] : name=%s,passwd=%s", tm.name, tm.passwd);
@@ -54,6 +68,7 @@ void *searchCache(void *arg) {
       splaytree_insert(splay_tree_cache, utiltool::hash((char *)arg + 1, strlen((char *)arg + 1)), arg);
    }
 
+   */
    return (void *)((char *)arg + 1);
 }
 
@@ -193,7 +208,7 @@ int main(int argc, char **argv) {
                fprintf(stderr, "fork error\n");
                exit(-1);
             }
-            runStage(res[2], _des[2], lookUpRedis, "lookup_redis");
+            //runStage(res[2], _des[2], lookUpRedis, "lookup_redis");
          }
       }
    }

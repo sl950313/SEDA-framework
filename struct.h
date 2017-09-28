@@ -51,4 +51,13 @@ struct test_msg {
    long begin_time, end_time;
 };
 
+/*
+typedef struct sedaObject {
+   unsigned type:4;
+   unsigned encoding:4;
+   int refcount;
+   void *ptr;
+} sobj;
+*/
+
 #endif ///
